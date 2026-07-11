@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Join Our Team | The Old Parsonage | Roseville Care</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green: #2C4A35;
+    --green-mid: #3D6B4A;
+    --green-light: #EDF2EE;
+    --gold: #B8924A;
+    --cream: #FAF7F2;
+    --text: #1A2B1D;
+    --muted: #6B7D6E;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    padding: 20px 64px;
+  }
+
+  /* HERO */
+  .hero {
+    background: var(--green);
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 80% 50%, rgba(184,146,74,0.12) 0%, transparent 60%);
+    pointer-events: none;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 60px 80px 80px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .roseville-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .badge-dot {
+    width: 8px; height: 8px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+
+  .badge-text {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.6);
+    font-weight: 500;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.4rem, 4vw, 3.8rem);
+    color: #fff;
+    line-height: 1.15;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.15s forwards;
+  }
+
+  .hero h1 em {
+    color: var(--gold);
+    font-style: italic;
+  }
+
+  .hero-sub {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.7;
+    max-width: 420px;
+    margin-bottom: 48px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.3s forwards;
+  }
+
+  .hero-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.45s forwards;
+  }
+
+  .pill {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.85);
+    padding: 8px 18px;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+  }
+
+  .cta-btn {
+    display: inline-block;
+    background: var(--gold);
+    color: #fff;
+    padding: 16px 36px;
+    border-radius: 4px;
+    font-weight: 500;
+    font-size: 0.95rem;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: all 0.2s ease;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.6s forwards;
+    align-self: flex-start;
+  }
+
+  .cta-btn:hover {
+    background: #a07d3d;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(184,146,74,0.35);
+  }
+
+  .hero-right {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+  }
+
+  .stat-card {
+    position: absolute;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 20px 28px;
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards;
+  }
+
+  .stat-card:nth-child(1) { top: 15%; left: 5%; animation-delay: 0.8s; }
+  .stat-card:nth-child(2) { top: 45%; right: 5%; animation-delay: 1s; }
+  .stat-card:nth-child(3) { bottom: 18%; left: 15%; animation-delay: 1.2s; }
+
+  .stat-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--gold);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .big-circle {
+    width: 320px; height: 320px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .big-circle::after {
+    content: '';
+    position: absolute;
+    inset: 30px;
+    border-radius: 50%;
+    border: 1px solid rgba(184,146,74,0.2);
+  }
+
+  .circle-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: rgba(255,255,255,0.4);
+    text-align: center;
+    font-style: italic;
+    line-height: 1.6;
+    max-width: 160px;
+  }
+
+  /* SCROLL INDICATOR */
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    opacity: 0;
+    animation: fadeIn 1s ease 1.4s forwards;
+  }
+
+  .scroll-hint span {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.3), transparent);
+    animation: scrollPulse 2s ease infinite;
+  }
+
+  /* WHY SECTION */
+  .why-section {
+    padding: 100px 80px;
+    background: var(--cream);
+  }
+
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 16px;
+  }
+
+  .why-section h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    color: var(--green);
+    margin-bottom: 60px;
+    max-width: 560px;
+    line-height: 1.2;
+  }
+
+  .why-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+  }
+
+  .why-card {
+    position: relative;
+    padding: 36px 32px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 20px rgba(44,74,53,0.06);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .why-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(44,74,53,0.1);
+  }
+
+  .why-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--gold);
+    border-radius: 8px 0 0 8px;
+  }
+
+  .why-icon {
+    font-size: 1.8rem;
+    margin-bottom: 16px;
+  }
+
+  .why-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.15rem;
+    color: var(--green);
+    margin-bottom: 10px;
+  }
+
+  .why-card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.65;
+    font-weight: 300;
+  }
+
+  /* FORM SECTION */
+  .form-section {
+    padding: 100px 80px;
+    background: var(--green-light);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .form-section::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,146,74,0.08), transparent 70%);
+    pointer-events: none;
+  }
+
+  .form-inner {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .form-left h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 2.5vw, 2.5rem);
+    color: var(--green);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .form-left p {
+    font-size: 0.92rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    font-weight: 300;
+  }
+
+  .what-happens {
+    background: #fff;
+    border-radius: 8px;
+    padding: 28px;
+  }
+
+  .what-happens h4 {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  .step-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .step-num {
+    width: 24px; height: 24px;
+    background: var(--green);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 500;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-text {
+    font-size: 0.84rem;
+    color: var(--text);
+    line-height: 1.5;
+    font-weight: 300;
+  }
+
+  /* FORM */
+  .app-form {
+    background: #fff;
+    border-radius: 12px;
+    padding: 44px;
+    box-shadow: 0 4px 40px rgba(44,74,53,0.08);
+  }
+
+  .form-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--green);
+    margin-bottom: 28px;
+  }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+
+  .field {
+    margin-bottom: 20px;
+  }
+
+  .field label {
+    display: block;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid #E2EBE4;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: #FAFCFA;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    appearance: none;
+    outline: none;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--green-mid);
+    box-shadow: 0 0 0 3px rgba(61,107,74,0.1);
+    background: #fff;
+  }
+
+  .field textarea { resize: vertical; min-height: 90px; }
+
+  .checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+
+  .checkbox-item input[type="checkbox"] {
+    width: 18px; height: 18px;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+
+  .checkbox-item span {
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--green);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+  }
+
+  .submit-btn:hover {
+    background: var(--green-mid);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(44,74,53,0.25);
+  }
+
+  .form-note {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--muted);
+    margin-top: 14px;
+    font-weight: 300;
+  }
+
+  /* SUCCESS STATE */
+  .success-state {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .success-icon {
+    width: 64px; height: 64px;
+    background: var(--green-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 1.8rem;
+  }
+
+  .success-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+
+  .success-state p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--green);
+    padding: 40px 80px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-brand {
+    font-family: 'Playfair Display', serif;
+    color: #fff;
+    font-size: 1.1rem;
+  }
+
+  .footer-brand span {
+    color: var(--gold);
+  }
+
+  .footer-text {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.4);
+    font-weight: 300;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scrollPulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 0.8; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    .hero { grid-template-columns: 1fr; }
+    .hero-right { display: none; }
+    .hero-content { padding: 60px 32px; }
+    .why-grid { grid-template-columns: 1fr; }
+    .form-inner { grid-template-columns: 1fr; gap: 40px; }
+    .why-section, .form-section { padding: 60px 32px; }
+    footer { flex-direction: column; gap: 12px; text-align: center; padding: 32px; }
+    .form-row { grid-template-columns: 1fr; }
+    .app-form { padding: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;color:rgba(255,255,255,0.7);text-decoration:none;letter-spacing:0.02em;transition:color 0.2s ease;font-weight:400;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">&larr; Back to all roles</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="roseville-badge">
+      <div class="badge-dot"></div>
+      <span class="badge-text">Roseville Care Group · Melksham, Wiltshire</span>
+    </div>
+
+    <h1>Make a real<br>difference, <em>every<br>single day.</em></h1>
+
+    <p class="hero-sub">
+      We're looking for caring, compassionate people to join the team at The Old Parsonage. 
+      No experience needed — just the right attitude.
+    </p>
+
+    <div class="hero-pills">
+      <span class="pill">✓ Full & part-time available</span>
+      <span class="pill">✓ Paid training provided</span>
+      <span class="pill">✓ Immediate starts</span>
+      <span class="pill">✓ No experience necessary</span>
+    </div>
+
+    <a href="#apply" class="cta-btn">Apply in 2 minutes →</a>
+  </div>
+
+  <div class="hero-right">
+    <div class="big-circle">
+      <p class="circle-text">"A team that feels<br>like family."</p>
+    </div>
+
+    <div class="stat-card">
+      <div class="stat-num">£12.50+</div>
+      <div class="stat-label">Per hour</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">Day 1</div>
+      <div class="stat-label">Prompt start</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num">24/7</div>
+      <div class="stat-label">Team support</div>
+    </div>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- WHY JOIN -->
+<section class="why-section">
+  <div class="section-label">Why The Old Parsonage</div>
+  <h2>More than just a job — a place where you belong.</h2>
+
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">🎓</div>
+      <h3>Full training from day one</h3>
+      <p>We train you everything you need to know. No care experience? No problem. We'll give you all the skills and confidence you need to thrive.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🕐</div>
+      <h3>Shifts that fit your life</h3>
+      <p>Day shifts, night shifts, weekends — we work around you. Whether you need full-time hours or something flexible, we'll find what works.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">📈</div>
+      <h3>Real career progression</h3>
+      <p>Many of our senior staff started exactly where you are now. We invest in people who want to grow — NVQ funding, senior roles, team leader pathways.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">💷</div>
+      <h3>Competitive pay</h3>
+      <p>From £12.50/hr with enhanced rates for nights, weekends and bank holidays. Pay that reflects the important work you do.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🏡</div>
+      <h3>A home from home</h3>
+      <p>The Old Parsonage is a small, close-knit home. You'll know every resident by name and genuinely make a difference to their daily life.</p>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🤝</div>
+      <h3>Supportive management</h3>
+      <p>Our managers are hands-on and approachable. You'll never feel alone — there's always someone to talk to, whatever you need.</p>
+    </div>
+  </div>
+</section>
+
+<!-- APPLICATION FORM -->
+<section class="form-section" id="apply">
+  <div class="form-inner">
+    <div class="form-left">
+      <div class="section-label">Join the team</div>
+      <h2>Apply today — it takes 2 minutes.</h2>
+      <p>Fill in your details and we'll be in touch within 24 hours. No lengthy forms, no waiting weeks for a response. We move fast because we know good people don't wait around.</p>
+
+      <div class="what-happens">
+        <h4>What happens next</h4>
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <div class="step-text">We review your application and call you within 24 hours</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <div class="step-text">A quick informal chat with our manager</div>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <div class="step-text">We handle your DBS for a prompt start</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-form" id="form-wrapper">
+      <div class="form-title">Your application</div>
+      <form id="applicationForm">
+        <div class="form-row">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" name="firstName" placeholder="Sarah" required>
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" name="lastName" placeholder="Johnson" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Mobile number</label>
+          <input type="tel" name="phone" placeholder="07700 900000" required>
+        </div>
+
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" name="email" placeholder="sarah@email.com" required>
+        </div>
+
+        <div class="field">
+          <label>Postcode</label>
+          <input type="text" name="postcode" placeholder="SN12 6AB" required>
+        </div>
+
+        <div class="field">
+          <label>Preferred shift pattern</label>
+          <select name="shifts" required>
+            <option value="" disabled selected>Select preference</option>
+            <option>Days (7am–3pm or 8am–2pm)</option>
+            <option>Evenings (2pm–10pm or 3pm–11pm)</option>
+            <option>Nights (10pm–7am)</option>
+            <option>Flexible — any shifts</option>
+            <option>Weekends only</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Hours per week</label>
+          <select name="hours" required>
+            <option value="" disabled selected>Select preference</option>
+            <option>Full time (36–40 hrs)</option>
+            <option>Part time (20–35 hrs)</option>
+            <option>Part time (under 20 hrs)</option>
+            <option>Bank / flexible as needed</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Care experience</label>
+          <select name="experience">
+            <option value="" disabled selected>Select</option>
+            <option>No experience — willing to learn</option>
+            <option>Some experience (under 1 year)</option>
+            <option>1–3 years experience</option>
+            <option>3+ years experience</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>How soon could you start?</label>
+          <select name="availability" required>
+            <option value="" disabled selected>Select</option>
+            <option>Immediately</option>
+            <option>Within 2 weeks</option>
+            <option>Within a month</option>
+            <option>More than a month</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Will you require visa sponsorship to work in the UK?</label>
+          <select name="requires-sponsorship" required>
+            <option value="" disabled selected>Select</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Anything else you'd like us to know? (optional)</label>
+          <textarea name="message" placeholder="Tell us a little about yourself or why you're interested..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Send my application →</button>
+        <p class="form-note">We'll call you within 24 hours. Your details are kept confidential.</p>
+      </form>
+
+      <div class="success-state" id="successState">
+        <div class="success-icon">✓</div>
+        <h3>Application received!</h3>
+        <p>Thank you. We'll be in touch within 24 hours to have a chat. We look forward to meeting you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">Roseville <span>Care Group</span></div>
+  <div class="footer-text">The Old Parsonage · Melksham, Wiltshire · Part of the Roseville Care Group</div>
+</footer>
+
+<script>
+  document.getElementById('applicationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const data = new FormData(e.target);
+    const entry = Object.fromEntries(data.entries());
+    entry.timestamp = new Date().toISOString();
+    entry.source = 'Melksham Landing Page';
+    entry.role = 'Care Assistant';
+
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+    } catch(err) {
+      console.error('Submission error:', err);
+    }
+
+    document.getElementById('applicationForm').style.display = 'none';
+    document.getElementById('successState').style.display = 'block';
+    document.getElementById('form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Intersection observer for card animations
+  const cards = document.querySelectorAll('.why-card');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        entry.target.style.animationDelay = `${i * 0.1}s`;
+        entry.target.style.animation = 'fadeUp 0.5s ease forwards';
+        entry.target.style.opacity = '1';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  cards.forEach(card => {
+    card.style.opacity = '0';
+    observer.observe(card);
+  });
+</script>
+</body>
+</html>

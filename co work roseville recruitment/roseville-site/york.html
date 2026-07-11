@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Home Carer Roles in York | Roseville Home Care</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1B2A4A;
+    --navy-mid: #253760;
+    --teal: #2A7D7B;
+    --teal-light: #E8F4F3;
+    --amber: #E8A030;
+    --cream: #F8F6F1;
+    --white: #FFFFFF;
+    --text: #1B2A4A;
+    --muted: #637085;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Outfit', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    padding: 20px 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(27,42,74,0.96);
+    backdrop-filter: blur(12px);
+  }
+
+  .nav-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    color: #fff;
+    letter-spacing: 0.02em;
+  }
+
+  .nav-brand em { color: var(--amber); font-style: italic; }
+
+  .nav-cta {
+    background: var(--teal);
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: all 0.2s ease;
+  }
+
+  .nav-cta:hover { background: var(--teal); filter: brightness(1.1); }
+
+  /* HERO */
+  .hero {
+    padding-top: 80px;
+    background: var(--navy);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero-bg-text {
+    position: absolute;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(120px, 18vw, 240px);
+    color: rgba(255,255,255,0.025);
+    font-style: italic;
+    white-space: nowrap;
+    bottom: -20px;
+    left: -20px;
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 60px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 80px 64px;
+  }
+
+  .hero-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease forwards;
+  }
+
+  .eyebrow-line {
+    width: 32px; height: 1px;
+    background: var(--amber);
+  }
+
+  .eyebrow-text {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.8rem, 5vw, 5rem);
+    color: #fff;
+    line-height: 1.08;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.15s forwards;
+  }
+
+  .hero h1 .italic { font-style: italic; color: var(--amber); }
+
+  .hero-body {
+    font-size: 1rem;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.75;
+    max-width: 440px;
+    margin-bottom: 44px;
+    font-weight: 300;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.3s forwards;
+  }
+
+  .hero-features {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.45s forwards;
+  }
+
+  .feature-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .feature-icon {
+    width: 36px; height: 36px;
+    background: rgba(42,125,123,0.2);
+    border: 1px solid rgba(42,125,123,0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+
+  .feature-text {
+    font-size: 0.9rem;
+    color: rgba(255,255,255,0.75);
+    font-weight: 300;
+  }
+
+  .feature-text strong { color: #fff; font-weight: 500; }
+
+  .hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.6s forwards;
+  }
+
+  .btn-primary {
+    background: var(--teal);
+    color: #fff;
+    padding: 16px 36px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.92rem;
+    text-decoration: none;
+    letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+    display: inline-block;
+  }
+
+  .btn-primary:hover {
+    background: #236461;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(42,125,123,0.3);
+  }
+
+  .btn-ghost {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-ghost:hover { color: rgba(255,255,255,0.85); }
+
+  /* HERO RIGHT PANEL */
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    opacity: 0;
+    animation: fadeIn 0.8s ease 0.8s forwards;
+  }
+
+  .info-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 24px 28px;
+    transition: all 0.25s ease;
+  }
+
+  .info-card:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: rgba(42,125,123,0.4);
+  }
+
+  .info-card-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .info-card-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.7rem;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .info-card-sub {
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.4);
+    font-weight: 300;
+  }
+
+  .areas-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .area-tag {
+    background: rgba(42,125,123,0.15);
+    border: 1px solid rgba(42,125,123,0.25);
+    color: rgba(255,255,255,0.7);
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 0.76rem;
+  }
+
+  /* WHO SECTION */
+  .who-section {
+    padding: 100px 80px;
+    background: var(--cream);
+  }
+
+  .section-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 64px;
+  }
+
+  .section-header-left .label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 12px;
+    font-weight: 500;
+  }
+
+  .section-header h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 3vw, 2.8rem);
+    color: var(--navy);
+    line-height: 1.2;
+    max-width: 500px;
+  }
+
+  .persona-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .persona-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 32px 26px;
+    border: 1px solid rgba(27,42,74,0.07);
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .persona-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--teal), var(--amber));
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .persona-card:hover { transform: translateY(-4px); box-shadow: 0 16px 48px rgba(27,42,74,0.1); }
+  .persona-card:hover::after { transform: scaleX(1); }
+
+  .persona-emoji { font-size: 2rem; margin-bottom: 16px; }
+
+  .persona-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.15rem;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+
+  .persona-card p {
+    font-size: 0.84rem;
+    color: var(--muted);
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* REQUIREMENTS */
+  .req-section {
+    background: var(--navy);
+    padding: 80px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .req-section h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 2.5vw, 2.5rem);
+    color: #fff;
+    margin-bottom: 16px;
+    line-height: 1.2;
+  }
+
+  .req-section p {
+    color: rgba(255,255,255,0.55);
+    font-size: 0.9rem;
+    line-height: 1.7;
+    font-weight: 300;
+  }
+
+  .req-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .req-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 10px;
+    padding: 18px 22px;
+  }
+
+  .req-check {
+    width: 28px; height: 28px;
+    background: var(--teal);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .req-item-text {
+    font-size: 0.88rem;
+    color: rgba(255,255,255,0.8);
+    font-weight: 300;
+  }
+
+  .req-item-text strong { color: #fff; font-weight: 500; }
+
+  /* FORM SECTION */
+  .form-section {
+    padding: 100px 80px;
+    background: var(--teal-light);
+  }
+
+  .form-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .form-info h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(1.8rem, 2.5vw, 2.5rem);
+    color: var(--navy);
+    line-height: 1.2;
+    margin-bottom: 20px;
+  }
+
+  .form-info .label {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 14px;
+    font-weight: 500;
+    display: block;
+  }
+
+  .form-info p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 36px;
+    font-weight: 300;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 28px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px; top: 10px; bottom: 10px;
+    width: 2px;
+    background: linear-gradient(to bottom, var(--teal), var(--amber));
+    border-radius: 2px;
+  }
+
+  .timeline-item {
+    position: relative;
+    margin-bottom: 24px;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: -23px; top: 4px;
+    width: 10px; height: 10px;
+    background: var(--teal);
+    border-radius: 50%;
+    border: 2px solid var(--teal-light);
+  }
+
+  .timeline-item:last-child .timeline-dot { background: var(--amber); }
+
+  .timeline-title {
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--navy);
+    margin-bottom: 3px;
+  }
+
+  .timeline-desc {
+    font-size: 0.8rem;
+    color: var(--muted);
+    font-weight: 300;
+    line-height: 1.4;
+  }
+
+  /* FORM */
+  .app-form {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 44px;
+    box-shadow: 0 8px 60px rgba(27,42,74,0.1);
+  }
+
+  .form-heading {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.5rem;
+    color: var(--navy);
+    margin-bottom: 28px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid rgba(27,42,74,0.08);
+  }
+
+  .field { margin-bottom: 18px; }
+
+  .field label {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid rgba(27,42,74,0.1);
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--cream);
+    transition: all 0.2s ease;
+    outline: none;
+    appearance: none;
+  }
+
+  .field input:focus,
+  .field select:focus,
+  .field textarea:focus {
+    border-color: var(--teal);
+    background: #fff;
+    box-shadow: 0 0 0 3px rgba(42,125,123,0.1);
+  }
+
+  .field textarea { min-height: 80px; resize: vertical; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.92rem;
+    font-weight: 500;
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.2s ease;
+    margin-top: 4px;
+  }
+
+  .submit-btn:hover {
+    background: var(--teal);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(42,125,123,0.25);
+  }
+
+  .form-note {
+    text-align: center;
+    font-size: 0.72rem;
+    color: var(--muted);
+    margin-top: 12px;
+    font-weight: 300;
+  }
+
+  .success-state {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+
+  .success-icon {
+    width: 60px; height: 60px;
+    background: var(--teal-light);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 1.5rem;
+    color: var(--teal);
+    border: 2px solid var(--teal);
+  }
+
+  .success-state h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.8rem;
+    color: var(--navy);
+    margin-bottom: 10px;
+  }
+
+  .success-state p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.6;
+    max-width: 300px;
+    margin: 0 auto;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--navy);
+    padding: 44px 80px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .footer-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    color: #fff;
+  }
+
+  .footer-brand span { color: var(--amber); font-style: italic; }
+
+  .footer-right { text-align: right; }
+  .footer-right p {
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.35);
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 1024px) {
+    .persona-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    nav { padding: 16px 24px; }
+    .hero-grid { grid-template-columns: 1fr; padding: 60px 24px; }
+    .hero-right { display: none; }
+    .who-section, .form-section { padding: 60px 24px; }
+    .req-section { grid-template-columns: 1fr; padding: 60px 24px; gap: 40px; }
+    .section-header { flex-direction: column; align-items: flex-start; gap: 20px; }
+    .persona-grid { grid-template-columns: 1fr; }
+    .form-container { grid-template-columns: 1fr; gap: 40px; }
+    .app-form { padding: 28px; }
+    .form-row { grid-template-columns: 1fr; }
+    footer { flex-direction: column; gap: 16px; text-align: center; padding: 32px 24px; }
+    .footer-right { text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/index.html" style="display:inline-flex;align-items:center;gap:6px;font-size:0.82rem;color:rgba(255,255,255,0.7);text-decoration:none;letter-spacing:0.02em;transition:color 0.2s ease;font-weight:400;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,0.7)'">&larr; Back to all roles</a>
+  <div class="nav-brand">Roseville <em>Home Care</em></div>
+  <a href="#apply" class="nav-cta">Apply now</a>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg-text">York</div>
+
+  <div class="hero-grid">
+    <div class="hero-left">
+      <div class="eyebrow">
+        <div class="eyebrow-line"></div>
+        <span class="eyebrow-text">Roseville Home Care · York & surrounding areas</span>
+      </div>
+
+      <h1>Work around<br>your life, <span class="italic">not<br>the other way.</span></h1>
+
+      <p class="hero-body">
+        We're looking for home carers across York and the surrounding villages. 
+        You choose your hours. You keep mileage. You make a genuine difference to people 
+        in your own community.
+      </p>
+
+      <div class="hero-features">
+        <div class="feature-row">
+          <div class="feature-icon">🕗</div>
+          <div class="feature-text"><strong>Morning, lunchtime or evening calls</strong> — fit around school drop-off</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">🚗</div>
+          <div class="feature-text"><strong>Mileage paid</strong> between every call</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">💷</div>
+          <div class="feature-text"><strong>From £13.00/hr</strong> plus enhanced weekend rates</div>
+        </div>
+        <div class="feature-row">
+          <div class="feature-icon">🎓</div>
+          <div class="feature-text"><strong>Full training provided</strong> — no experience necessary</div>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a href="#apply" class="btn-primary">Apply in 2 minutes →</a>
+        <a href="#who" class="btn-ghost">Is this for me? ↓</a>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div class="info-card">
+        <div class="info-card-label">Areas we cover</div>
+        <div class="info-card-value">York & Villages</div>
+        <div class="info-card-sub">Within approx. 10 miles of the city</div>
+        <div class="areas-list">
+          <span class="area-tag">Haxby</span>
+          <span class="area-tag">Poppleton</span>
+          <span class="area-tag">Strensall</span>
+          <span class="area-tag">Copmanthorpe</span>
+          <span class="area-tag">Skelton</span>
+          <span class="area-tag">Acomb</span>
+          <span class="area-tag">Huntingdon</span>
+          <span class="area-tag">Tang Hall</span>
+          <span class="area-tag">Heworth</span>
+          <span class="area-tag">Town Centre</span>
+          <span class="area-tag">Clifton</span>
+          <span class="area-tag">Rawcliffe</span>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-label">Pay & benefits</div>
+        <div class="info-card-value">£13.00 – £15.50</div>
+        <div class="info-card-sub">Per hour including weekend enhancement</div>
+      </div>
+
+      <div class="info-card">
+        <div class="info-card-label">Available shifts</div>
+        <div class="info-card-value">You decide</div>
+        <div class="info-card-sub">Mornings · Lunchtimes · Afternoons · Evenings · Weekends</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHO IS THIS FOR -->
+<section class="who-section" id="who">
+  <div class="section-header">
+    <div class="section-header-left">
+      <div class="label">Who we're looking for</div>
+      <h2>You don't need a care background.<br>You need the right values.</h2>
+    </div>
+  </div>
+
+  <div class="persona-grid">
+    <div class="persona-card">
+      <div class="persona-emoji">👩‍👧</div>
+      <h3>Parents with school-age kids</h3>
+      <p>Morning and lunchtime calls fit perfectly around the school run. Work the hours that suit your family, not the other way around.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-emoji">❤️</div>
+      <h3>People who've cared for family</h3>
+      <p>If you've looked after a parent, spouse or relative, you already know what this job is about. That experience is exactly what we value.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-emoji">🏥</div>
+      <h3>NHS or care home leavers</h3>
+      <p>Wanting out of shift work but not the sector? Home care gives you the flexibility of your own round, without the institutional environment.</p>
+    </div>
+    <div class="persona-card">
+      <div class="persona-emoji">👴</div>
+      <h3>Semi-retired people</h3>
+      <p>Looking for meaningful part-time work that keeps you active and connected? This is one of the most rewarding ways to spend your hours.</p>
+    </div>
+  </div>
+</section>
+
+<!-- REQUIREMENTS -->
+<section class="req-section">
+  <div>
+    <h2>Two things we<br>do need from you.</h2>
+    <p style="margin-top: 16px;">Beyond those, we'll train you for everything. Most of our best carers had never worked in care before they joined us.</p>
+  </div>
+
+  <ul class="req-list">
+    <li class="req-item">
+      <div class="req-check">🚗</div>
+      <div class="req-item-text"><strong>Your own car and a valid UK driving licence.</strong> You'll be visiting clients across a local area, so this is essential. We pay mileage for every journey.</div>
+    </li>
+    <li class="req-item">
+      <div class="req-check">❤️</div>
+      <div class="req-item-text"><strong>A genuine desire to help people.</strong> Everything else — the training, the DBS, the practical skills — we sort. What we can't teach is compassion and reliability.</div>
+    </li>
+    <li class="req-item">
+      <div class="req-check">✓</div>
+      <div class="req-item-text"><strong>Eligible to work in the UK.</strong> You'll need the right to work in the UK. We'll verify this as part of the onboarding process.</div>
+    </li>
+  </ul>
+</section>
+
+<!-- APPLICATION FORM -->
+<section class="form-section" id="apply">
+  <div class="form-container">
+    <div class="form-info">
+      <span class="label">Apply today</span>
+      <h2>We'll call you<br>within 24 hours.</h2>
+      <p>No lengthy process. We know good people are busy — so we make it as easy as possible to get started. Fill in your details and we'll take it from there.</p>
+
+      <div class="timeline">
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">You apply — takes 2 minutes</div>
+          <div class="timeline-desc">Just the basics — name, number, where you are, when you can work</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">We call within 24 hours</div>
+          <div class="timeline-desc">A quick informal chat — just a conversation</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">We handle your DBS for a prompt start</div>
+          <div class="timeline-desc">We sort the paperwork — you don't need to do a thing</div>
+        </div>
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <div class="timeline-title">You start with shadowing</div>
+          <div class="timeline-desc">Shadowing first, then your own round once you're comfortable</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-form" id="form-wrapper">
+      <div class="form-heading">Your application</div>
+
+      <form id="applicationForm">
+        <div class="form-row">
+          <div class="field">
+            <label>First name</label>
+            <input type="text" name="firstName" placeholder="Emma" required>
+          </div>
+          <div class="field">
+            <label>Last name</label>
+            <input type="text" name="lastName" placeholder="Roberts" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Mobile number</label>
+          <input type="tel" name="phone" placeholder="07700 900000" required>
+        </div>
+
+        <div class="field">
+          <label>Email address</label>
+          <input type="email" name="email" placeholder="emma@email.com" required>
+        </div>
+
+        <div class="field">
+          <label>Postcode</label>
+          <input type="text" name="postcode" placeholder="YO26 6AB" required>
+        </div>
+
+        <div class="field">
+          <label>How will you travel between calls?</label>
+          <select name="transport" required>
+            <option value="" disabled selected>Select</option>
+            <option value="yes">Yes — own car (full UK driving licence)</option>
+            <option value="other">Other forms of transport (e.g. bike, scooter)</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>When can you work?</label>
+          <select name="availability" required>
+            <option value="" disabled selected>Select preference</option>
+            <option>Mornings (7am–1pm)</option>
+            <option>Lunchtimes (11am–2pm)</option>
+            <option>Afternoons / evenings</option>
+            <option>Weekends</option>
+            <option>Flexible — happy with any calls</option>
+            <option>Mix of the above</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Hours per week you're looking for</label>
+          <select name="hours">
+            <option value="" disabled selected>Select</option>
+            <option>Up to 15 hours</option>
+            <option>15–25 hours</option>
+            <option>25–35 hours</option>
+            <option>35+ hours (full time)</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Any care experience? (not required)</label>
+          <select name="experience">
+            <option value="" disabled selected>Select</option>
+            <option>None — but I'm keen to learn</option>
+            <option>Cared for a family member</option>
+            <option>Some professional care experience</option>
+            <option>Experienced carer</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>How soon could you start?</label>
+          <select name="availability_to_start" required>
+            <option value="" disabled selected>Select</option>
+            <option>Immediately</option>
+            <option>Within 2 weeks</option>
+            <option>Within a month</option>
+            <option>More than a month</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Will you require visa sponsorship to work in the UK?</label>
+          <select name="requires-sponsorship" required>
+            <option value="" disabled selected>Select</option>
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Anything you'd like us to know? (optional)</label>
+          <textarea name="message" placeholder="Tell us a bit about yourself — why you're interested, what you're looking for..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">Send my application →</button>
+        <p class="form-note">We'll call you within 24 hours. Your details are kept private and confidential.</p>
+      </form>
+
+      <div class="success-state" id="successState">
+        <div class="success-icon">✓</div>
+        <h3>You're all set!</h3>
+        <p>We'll be in touch within 24 hours for a quick chat. Thank you — we look forward to speaking with you.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-brand">Roseville <span>Home Care</span></div>
+  <div class="footer-right">
+    <p>Serving York, Haxby, Poppleton, Strensall, Copmanthorpe,<br>Skelton, Acomb, Huntingdon, Tang Hall, Heworth,<br>Town Centre, Clifton, Rawcliffe and surrounding areas</p>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('applicationForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const data = new FormData(e.target);
+    const entry = Object.fromEntries(data.entries());
+    entry.timestamp = new Date().toISOString();
+    entry.source = 'York Landing Page';
+    entry.role = 'Home Carer';
+
+    try {
+      await fetch('https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec', {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry)
+      });
+    } catch(err) {
+      console.error('Submission error:', err);
+    }
+
+    document.getElementById('applicationForm').style.display = 'none';
+    document.getElementById('successState').style.display = 'block';
+    document.getElementById('form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+
+  // Animate personas on scroll
+  const cards = document.querySelectorAll('.persona-card, .info-card, .req-item');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }, i * 80);
+      }
+    });
+  }, { threshold: 0.1 });
+
+  cards.forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'translateY(20px)';
+    card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    observer.observe(card);
+  });
+</script>
+</body>
+</html>

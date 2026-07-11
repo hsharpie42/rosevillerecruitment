@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Careers | Roseville Care Group</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #1B2A4A;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .container {
+    text-align: center;
+    padding: 60px 24px;
+    max-width: 700px;
+  }
+  .badge {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: 1.2;
+    margin-bottom: 16px;
+  }
+  h1 em { color: #E8A030; font-style: italic; }
+  .sub {
+    color: rgba(255,255,255,0.55);
+    font-size: 1rem;
+    line-height: 1.7;
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-decoration: none;
+    color: #fff;
+    transition: all 0.25s ease;
+  }
+  .card:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(232,160,48,0.4);
+    transform: translateY(-4px);
+  }
+  .card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+  }
+  .card .role {
+    color: #E8A030;
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .card p {
+    color: rgba(255,255,255,0.5);
+    font-size: 0.85rem;
+    line-height: 1.5;
+    font-weight: 300;
+  }
+  .card .arrow {
+    display: inline-block;
+    margin-top: 16px;
+    color: #E8A030;
+    font-size: 0.85rem;
+  }
+  @media (max-width: 600px) {
+    .cards { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="badge">Roseville Care Group</div>
+  <h1>Join our team.<br><em>Make a difference.</em></h1>
+  <p class="sub">We're hiring caring, compassionate people across our homes and home care services. Choose a location below to find out more and apply.</p>
+
+  <div class="cards">
+    <a href="/melksham.html" class="card">
+      <h2>Melksham, Wiltshire</h2>
+      <div class="role">Care Assistant</div>
+      <p>The Old Parsonage residential home. Full and part-time roles. From £12.50/hr.</p>
+      <span class="arrow">View & apply →</span>
+    </a>
+    <a href="/york.html" class="card">
+      <h2>York & Surrounding Areas</h2>
+      <div class="role">Home Carer</div>
+      <p>Community home care across York and villages. Flexible hours. From £13.00/hr.</p>
+      <span class="arrow">View & apply →</span>
+    </a>
+    <a href="/limetrees.html" class="card">
+      <h2>Lime Trees</h2>
+      <div class="role">Care Assistant</div>
+      <p>Limetree House, Upper Poppleton, York. Full and part-time roles. From £12.50/hr.</p>
+      <span class="arrow">View & apply →</span>
+    </a>
+    <a href="/lodge.html" class="card">
+      <h2>The Lodge</h2>
+      <div class="role">Care Assistant</div>
+      <p>The Lodge, Heslington, York. Full and part-time roles. From £12.50/hr.</p>
+      <span class="arrow">View & apply →</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>
