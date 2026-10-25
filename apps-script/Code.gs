@@ -3,9 +3,9 @@
  * Project owner: recruitment@rosevillecaregroup.co.uk
  * Deployment:    AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g
  *
- * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID, tab routing,
+ * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID,
  * 7-point scoring and thresholds, sponsorship auto-reject, candidate email, Calendly block,
- * shortlist alert. Added: three appended columns (Start Availability, Channel, Campaign),
+ * shortlist alert. Changed: York submissions go to the 'Able carers' tab. Added: three appended columns (Start Availability, Channel, Campaign),
  * field normalisation, JSON responses, a try/catch around the sheet write that emails
  * recruitment@ with the payload on failure, and testAllRoutes().
  */
@@ -56,7 +56,7 @@ function jsonOut(obj) {
 function buildApplication(data) {
   var source = data.source || 'Unknown';
 
-  // ── Tab routing (unchanged) ──
+  // ── Tab routing (York page → 'Able carers' tab, matching the Main tracker) ──
   var tabName;
   if (source.indexOf('Melksham') > -1) {
     tabName = 'Melksham';
@@ -65,7 +65,7 @@ function buildApplication(data) {
   } else if (source.indexOf('Lodge') > -1) {
     tabName = 'The Lodge';
   } else {
-    tabName = 'York';
+    tabName = 'Able carers';   // York Landing Page = Able Carers
   }
 
   // ── Field mapping ──
@@ -268,7 +268,7 @@ function sendEmails(app) {
 function testAllRoutes() {
   var routes = [
     { source: 'Melksham Landing Page',       role: 'Care Assistant', tab: 'Melksham' },
-    { source: 'York Landing Page',           role: 'Home Carer',     tab: 'York' },
+    { source: 'York Landing Page',           role: 'Home Carer',     tab: 'Able carers' },
     { source: 'Limetree House Landing Page', role: 'Care Assistant', tab: 'Limetree House' },
     { source: 'The Lodge Landing Page',      role: 'Care Assistant', tab: 'The Lodge' }
   ];

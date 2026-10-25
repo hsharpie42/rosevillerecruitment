@@ -9,22 +9,21 @@ are already applied to `roseville-site/`.
 |---|---|---|
 | Pages | Netlify site `roseville-care-recruitment`, folder `roseville-site/` | drag-and-drop deploy |
 | Webhook | Apps Script "Roseville Recruitment — Main Webhook", owner `recruitment@rosevillecaregroup.co.uk` | deployment `AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g` |
-| Main tracker | Google Sheet, tabs `Melksham`, `York`, `Limetree House`, `The Lodge` | `1wSZeKo4pmvtxbgHOwEzDNOxD7zBdgWoRrGsUZXZXk3I` |
+| Main tracker | Google Sheet, tabs `Melksham`, `Able carers`, `Limetree House`, `The Lodge` | `1wSZeKo4pmvtxbgHOwEzDNOxD7zBdgWoRrGsUZXZXk3I` |
 
 ## 1. Webhook (`Code.gs`) — deploy as a new version of the existing deployment
 
-1. Manual first: on the Main tracker, rename the `Able carers` tab back to **`York`**. The script routes York submissions to a tab called `York` and will otherwise create a new one.
-2. Open the "Roseville Recruitment — Main Webhook" project as `recruitment@`, replace the contents of `Code.gs` with this folder's `Code.gs`, save.
-3. Run **`testAllRoutes`** from the function dropdown. Approve permissions if asked. The execution log must show `PASS` for Melksham, York, Limetree House and The Lodge, then `ALL ROUTES PASS`. Each test row is written and deleted; no emails are sent. The first run also appends the three new headers (`Start Availability`, `Channel`, `Campaign`) to each tab.
-4. Deploy → **Manage deployments** → pencil on the existing deployment → Version **New version** → Deploy. Do **not** create a new deployment: the URL is hard-coded in four live pages.
+1. Open the "Roseville Recruitment — Main Webhook" project as `recruitment@`, replace the contents of `Code.gs` with this folder's `Code.gs`, save.
+2. Run **`testAllRoutes`** from the function dropdown. Approve permissions if asked. The execution log must show `PASS` for Melksham, Able carers, Limetree House and The Lodge, then `ALL ROUTES PASS`. Each test row is written and deleted; no emails are sent. The first run also appends the three new headers (`Start Availability`, `Channel`, `Campaign`) to each tab.
+3. Deploy → **Manage deployments** → pencil on the existing deployment → Version **New version** → Deploy. Do **not** create a new deployment: the URL is hard-coded in four live pages.
 
-What changed, and only this: three appended columns populated from `availability`, `channel`, `campaign`; email lower-cased and trimmed, postcode upper-cased, phone digits-only and formatted `07543 277144`; JSON responses (`{ok:true}` / `{ok:false,message}`); the sheet write is wrapped so a failure emails `recruitment@` with subject `APPLICATION NOT SAVED — <source>` and the full payload, then returns `{ok:false}`; `testAllRoutes()`. Sheet ID, routing, scoring, thresholds, sponsorship reject, candidate email, Calendly block and shortlist alert are untouched. `Logger.log` became `console.log` so web-app errors show under Executions.
+What changed, and only this: three appended columns populated from `availability`, `channel`, `campaign`; email lower-cased and trimmed, postcode upper-cased, phone digits-only and formatted `07543 277144`; JSON responses (`{ok:true}` / `{ok:false,message}`); the sheet write is wrapped so a failure emails `recruitment@` with subject `APPLICATION NOT SAVED — <source>` and the full payload, then returns `{ok:false}`; `testAllRoutes()`. York submissions now go to the `Able carers` tab (the Main tracker's name for it) instead of `York`. Sheet ID, scoring, thresholds, sponsorship reject, candidate email, Calendly block and shortlist alert are untouched. `Logger.log` became `console.log` so web-app errors show under Executions.
 
 ## 2 & 3. Pages — redeploy `roseville-site/` to Netlify
 
 The five files in `roseville-site/` already carry the new form handler and the tracking blocks. Before uploading:
 
-1. **Phone numbers.** `melksham.html` and `york.html` have `var PHONE = ''` with a TODO. Fill in The Old Parsonage and Able Carers numbers; until then the failure message omits the "call us" line. Limetree House (`01904 795280`) and The Lodge (`01904 430781`) are set.
+1. **Phone numbers** are set: The Old Parsonage `01225 782167`, Able Carers `01904 795551`, Limetree House `01904 795280`, The Lodge `01904 430781`.
 2. **Analytics IDs.** Create the GA4 property and Meta Pixel, then replace the placeholders in all five files:
    ```
    sed -i 's/G-XXXXXXXXXX/G-<real>/g; s/000000000000000/<pixel id>/g' roseville-site/*.html
