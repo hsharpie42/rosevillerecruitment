@@ -24,9 +24,9 @@ What changed, and only this: three appended columns populated from `availability
 The five files in `roseville-site/` already carry the new form handler and the tracking blocks. Before uploading:
 
 1. **Phone numbers** are set: The Old Parsonage `01225 782167`, Able Carers `01904 795551`, Limetree House `01904 795280`, The Lodge `01904 430781`.
-2. **Analytics IDs.** Create the GA4 property and Meta Pixel, then replace the placeholders in all five files:
+2. **Analytics IDs.** GA4 `G-1ZQCKZC1Q4` is in all five files. Create the Meta Pixel, then replace the placeholder:
    ```
-   sed -i 's/G-XXXXXXXXXX/G-<real>/g; s/000000000000000/<pixel id>/g' roseville-site/*.html
+   sed -i 's/000000000000000/<pixel id>/g' roseville-site/*.html
    ```
    In GA4, mark `application_submit` as a key event.
 3. Upload the `roseville-site/` folder to Netlify (Deploys → drag and drop).
