@@ -1,277 +1,317 @@
 /**
- * Roseville Care Group — Recruitment Form Webhook (Code.gs)
+ * Roseville Recruitment — Main Webhook  (Code.gs)
+ * Project owner: recruitment@rosevillecaregroup.co.uk
+ * Deployment:    AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g
  *
- * One script serves every landing page (Melksham, Limetree House, The Lodge, York).
- * Each page POSTs JSON to this web app's /exec URL. The script:
- *   1. appends a row to the tracker spreadsheet (CONFIG.SHEET_ID) on the location's tab
- *   2. emails the candidate an auto-response
- *   3. emails the location manager (every application, not only shortlisted ones)
- *   4. if the spreadsheet write fails, emails the full application to the manager and
- *      CONFIG.FALLBACK_EMAIL so no candidate is ever lost
- *
- * Everything is logged with console.log so it shows under Executions for web-app runs.
- * Open the /exec URL in a browser (GET) to see which spreadsheet THIS deployment writes to.
+ * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID, tab routing,
+ * 7-point scoring and thresholds, sponsorship auto-reject, candidate email, Calendly block,
+ * shortlist alert. Added: three appended columns (Start Availability, Channel, Campaign),
+ * field normalisation, JSON responses, a try/catch around the sheet write that emails
+ * recruitment@ with the payload on failure, and testAllRoutes().
  */
 
-var CONFIG = {
-  // Roseville Recruitment Tracker. Change this one line to move every location to another file.
-  SHEET_ID: '1ueL81uMGJHbE14fVfwTbiVDb4nu9R6xQdGH9dCvfVmo',
-  // Gets a copy of every error and of any application that could not be saved.
-  FALLBACK_EMAIL: 'harry42.sharp@gmail.com',
-  // true  = manager is emailed for every application (score and status in the subject)
-  // false = manager is emailed only for Shortlist, as the old script did
-  NOTIFY_MANAGER_ON_EVERY_APPLICATION: true,
-  SCRIPT_VERSION: '2026-10-25.1'
-};
+var SHEET_ID = '1wSZeKo4pmvtxbgHOwEzDNOxD7zBdgWoRrGsUZXZXk3I';
+var ALERT_EMAIL = 'recruitment@rosevillecaregroup.co.uk';
 
-var HEADERS = ['Timestamp', 'Source', 'Role', 'First Name', 'Last Name', 'Mobile', 'Email',
-  'Postcode', 'Shift Preference', 'Hours Per Week', 'Care Experience', 'Message',
-  'Requires Sponsorship', 'Score', 'Status', 'Jo Notes', 'Date Called'];
+var BASE_HEADERS = ['Timestamp','Source','Role','First Name','Last Name','Mobile','Email','Postcode','Shift Preference','Hours Per Week','Care Experience','Message','Requires Sponsorship','Score','Status','Jo Notes','Date Called'];
+var EXTRA_HEADERS = ['Start Availability','Channel','Campaign'];   // appended after Date Called
+var STATUS_COL = BASE_HEADERS.indexOf('Status') + 1;               // 15
 
-var LOCATIONS = [
-  { match: 'Melksham', tab: 'Melksham', brandName: 'The Old Parsonage',
-    managerEmail: 'manager.oldparsonage@rosevillecaregroup.co.uk',
-    calendlyUrl: 'https://calendly.com/manager-oldparsonage-rosevillecaregroup/application-call-the-old-parsonage' },
-  { match: 'Limetree', tab: 'Limetree House', brandName: 'Limetree House',
-    managerEmail: 'manager.limetrees@rosevillecaregroup.co.uk',
-    calendlyUrl: 'https://calendly.com/manager-limetrees-rosevillecaregroup/application-call-limetree-house' },
-  { match: 'Lodge', tab: 'The Lodge', brandName: 'The Lodge',
-    managerEmail: 'manager.lodge@rosevillecaregroup.co.uk',
-    calendlyUrl: 'https://calendly.com/manager-lodge-rosevillecaregroup/application-call-the-lodge' },
-  { match: 'York', tab: 'York', brandName: 'Able Carers',
-    managerEmail: 'manager.ablecarers@rosevillecaregroup.co.uk',
-    calendlyUrl: 'https://calendly.com/manager-ablecarers-rosevillecaregroup/application-call-able-carers' }
-];
-
-function locationFor(source) {
-  for (var i = 0; i < LOCATIONS.length; i++) {
-    if (source.indexOf(LOCATIONS[i].match) > -1) return LOCATIONS[i];
-  }
-  return LOCATIONS[LOCATIONS.length - 1]; // York / Able Carers, as before
-}
-
-// ───────────────────────── GET: diagnostics ─────────────────────────
-// Visit the deployment's /exec URL in a browser to confirm what it is wired to.
-function doGet() {
-  var lines = ['Roseville recruitment webhook', 'version: ' + CONFIG.SCRIPT_VERSION,
-    'runs as: ' + Session.getEffectiveUser().getEmail(),
-    'sheet id: ' + CONFIG.SHEET_ID];
-  try {
-    var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-    lines.push('sheet name: ' + ss.getName());
-    lines.push('sheet url: ' + ss.getUrl());
-    lines.push('tabs: ' + ss.getSheets().map(function (s) { return s.getName() + ' (' + (s.getLastRow() - 1) + ' rows)'; }).join(', '));
-  } catch (err) {
-    lines.push('SHEET ERROR: ' + err);
-  }
-  try { lines.push('email quota remaining today: ' + MailApp.getRemainingDailyQuota()); }
-  catch (err) { lines.push('EMAIL ERROR: ' + err); }
-  return ContentService.createTextOutput(lines.join('\n')).setMimeType(ContentService.MimeType.TEXT);
-}
-
-// ───────────────────────── POST: an application ─────────────────────────
+// ───────────────────────── Web app entry point ─────────────────────────
 function doPost(e) {
-  var result = { ok: false, saved: false, candidateEmailed: false, managerEmailed: false, errors: [] };
-  var data = parseBody(e);
-  if (!data) {
-    console.error('Could not parse request body: ' + JSON.stringify(e && e.postData));
-    notifyFallback('Recruitment webhook: unreadable submission', 'Raw body:\n' + (e && e.postData ? e.postData.contents : '(none)'));
-    return respond(result, 'Error parsing body');
+  var data;
+  try {
+    data = JSON.parse(e.postData.contents);
+  } catch(err) {
+    return jsonOut({ ok: false, message: 'Error parsing JSON' });
   }
 
   var app = buildApplication(data);
-  console.log('Application received: ' + JSON.stringify(app));
 
-  // 1. Save to tracker
+  // ── Sheet write (guarded) ──
   try {
-    app.rowNumber = appendToTracker(app);
-    result.saved = true;
-    console.log('Saved to tab "' + app.location.tab + '" row ' + app.rowNumber);
-  } catch (err) {
-    result.errors.push('sheet: ' + err);
-    console.error('Tracker write FAILED: ' + err);
-  }
-
-  // 2. Candidate auto-response
-  if (app.email) {
+    app.rowNumber = writeApplication(app);
+    console.log('Saved ' + app.firstName + ' ' + app.lastName + ' to "' + app.tabName + '" row ' + app.rowNumber);
+  } catch(err) {
+    console.error('Sheet write failed for ' + app.source + ': ' + err);
     try {
-      sendCandidateEmail(app);
-      result.candidateEmailed = true;
-    } catch (err) {
-      result.errors.push('candidate email: ' + err);
-      console.error('Candidate email FAILED: ' + err);
+      GmailApp.sendEmail(ALERT_EMAIL, 'APPLICATION NOT SAVED — ' + app.source,
+        'The tracker write failed and this application must be entered by hand.\n\n' +
+        'Error: ' + err + '\n\nPayload:\n' + JSON.stringify(data, null, 2));
+    } catch(mailErr) {
+      console.error('Alert email failed: ' + mailErr);
     }
+    return jsonOut({ ok: false, message: 'Could not save application: ' + err });
   }
 
-  // 3. Manager notification (always when the save failed, so the data is not lost)
-  var shouldNotify = CONFIG.NOTIFY_MANAGER_ON_EVERY_APPLICATION || app.status === 'Shortlist' || !result.saved;
-  if (shouldNotify) {
-    try {
-      sendManagerEmail(app, result.saved);
-      result.managerEmailed = true;
-    } catch (err) {
-      result.errors.push('manager email: ' + err);
-      console.error('Manager email FAILED: ' + err);
-    }
-  }
-
-  // 4. Fallback copy if anything went wrong
-  if (result.errors.length) {
-    notifyFallback('Recruitment webhook problem — ' + app.firstName + ' ' + app.lastName + ' (' + app.location.brandName + ')',
-      'Errors:\n' + result.errors.join('\n') + '\n\nFull application:\n' + JSON.stringify(app, null, 2));
-  }
-
-  result.ok = result.saved;
-  console.log('Result: ' + JSON.stringify(result));
-  return respond(result, result.ok ? 'OK' : 'ERROR');
+  sendEmails(app);
+  return jsonOut({ ok: true });
 }
 
-function parseBody(e) {
-  if (!e) return null;
-  if (e.postData && e.postData.contents) {
-    try { return JSON.parse(e.postData.contents); } catch (ignored) { /* fall through */ }
-  }
-  if (e.parameter && Object.keys(e.parameter).length) return e.parameter; // form-encoded fallback
-  return null;
+function jsonOut(obj) {
+  return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
 
+// ───────────────────────── Parsing, normalising, scoring ─────────────────────────
 function buildApplication(data) {
   var source = data.source || 'Unknown';
-  var app = {
-    timestamp: data.timestamp || new Date().toISOString(),
-    source: source,
-    role: data.role || '',
-    firstName: data.firstName || data['first-name'] || '',
-    lastName: data.lastName || data['last-name'] || '',
-    mobile: data.mobile || data.phone || '',
-    email: data.email || '',
-    postcode: data.postcode || '',
-    shift: data.shift || data['shift-pattern'] || data.shifts || data.availability || '',
-    hours: data.hours || data['hours-per-week'] || '',
-    experience: data.experience || data['care-experience'] || '',
-    message: data.message || data.notes || '',
-    sponsorship: data.sponsorship || data['requires-sponsorship'] || '',
-    hasCar: data.hasCar || '',
-    location: locationFor(source)
-  };
 
-  // Scoring — identical to the previous script (0–7)
-  var score = 0;
-  var shift = app.shift.toLowerCase(), hours = app.hours.toLowerCase(), exp = app.experience.toLowerCase();
-  if (shift.indexOf('day') > -1) score++;
-  if (shift.indexOf('evening') > -1 || shift.indexOf('night') > -1) score++;
-  if (hours.indexOf('full') > -1) score++;
-  if (exp.indexOf('experience') > -1 && app.experience.indexOf('No experience') === -1) score++;
-  if (app.experience.indexOf('3+') > -1) score++;
-  if (app.message.trim().length > 0) score++;
-  if (app.hasCar.toLowerCase() === 'yes') score++;
-
-  var status = 'Rejected', colour = '#f4cccc';
-  var spons = app.sponsorship.toLowerCase();
-  if (spons === 'yes' || spons.indexOf('require') > -1) {
-    status = 'Rejected - Sponsorship'; score = 0;
-  } else if (score >= 3) {
-    status = 'Shortlist'; colour = '#d9ead3';
-  } else if (score >= 1) {
-    status = 'Warm Pool'; colour = '#fff2cc';
+  // ── Tab routing (unchanged) ──
+  var tabName;
+  if (source.indexOf('Melksham') > -1) {
+    tabName = 'Melksham';
+  } else if (source.indexOf('Limetree') > -1) {
+    tabName = 'Limetree House';
+  } else if (source.indexOf('Lodge') > -1) {
+    tabName = 'The Lodge';
+  } else {
+    tabName = 'York';
   }
-  app.score = score; app.status = status; app.statusColour = colour;
-  return app;
+
+  // ── Field mapping ──
+  var firstName = data.firstName || data['first-name'] || '';
+  var lastName = data.lastName || data['last-name'] || '';
+  var mobile = normalisePhone(data.mobile || data.phone || '');
+  var email = normaliseEmail(data.email || '');
+  var postcode = normalisePostcode(data.postcode || '');
+  var shift = data.shift || data['shift-pattern'] || data.shifts || data.availability || '';
+  var hours = data.hours || data['hours-per-week'] || '';
+  var experience = data.experience || data['care-experience'] || '';
+  var message = data.message || data.notes || '';
+  var sponsorship = data.sponsorship || data['requires-sponsorship'] || '';
+  var role = data.role || '';
+  var timestamp = data.timestamp || new Date().toISOString();
+  var startAvailability = data.availability || '';
+  var channel = data.channel || '';
+  var campaign = data.campaign || '';
+
+  // ── Scoring (unchanged) ──
+  var score = 0;
+  if (shift && shift.toLowerCase().indexOf('day') > -1) score++;
+  if (shift && (shift.toLowerCase().indexOf('evening') > -1 || shift.toLowerCase().indexOf('night') > -1)) score++;
+  if (hours && hours.toLowerCase().indexOf('full') > -1) score++;
+  if (experience && experience.toLowerCase().indexOf('experience') > -1 && experience.indexOf('No experience') === -1) score++;
+  if (experience && experience.indexOf('3+') > -1) score++;
+  if (message && message.trim().length > 0) score++;
+  if (data.hasCar && data.hasCar.toLowerCase() === 'yes') score++;
+
+  var status = 'Rejected';
+  var statusColor = '#f4cccc';
+  if (sponsorship && (sponsorship.toLowerCase() === 'yes' || sponsorship.toLowerCase().indexOf('require') > -1)) {
+    status = 'Rejected - Sponsorship';
+    statusColor = '#f4cccc';
+    score = 0;
+  } else if (score >= 3) {
+    status = 'Shortlist';
+    statusColor = '#d9ead3';
+  } else if (score >= 1) {
+    status = 'Warm Pool';
+    statusColor = '#fff2cc';
+  }
+
+  var row = [timestamp, source, role, firstName, lastName, mobile, email, postcode, shift, hours, experience, message, sponsorship, score, status, '', '',
+             startAvailability, channel, campaign];
+
+  return {
+    source: source, tabName: tabName, row: row,
+    firstName: firstName, lastName: lastName, mobile: mobile, email: email, role: role,
+    experience: experience, score: score, status: status, statusColor: statusColor
+  };
 }
 
-function appendToTracker(app) {
-  var ss = SpreadsheetApp.openById(CONFIG.SHEET_ID);
-  var tab = ss.getSheetByName(app.location.tab);
+function normaliseEmail(v) {
+  return String(v).trim().toLowerCase();
+}
+
+function normalisePostcode(v) {
+  return String(v).trim().toUpperCase().replace(/\s+/g, ' ');
+}
+
+function normalisePhone(v) {
+  var digits = String(v).replace(/\D/g, '');
+  if (digits.length === 12 && digits.indexOf('447') === 0) digits = '0' + digits.slice(2);   // +44 7xxx → 07xxx
+  if (digits.length === 11 && digits.indexOf('07') === 0) return digits.slice(0, 5) + ' ' + digits.slice(5);
+  return digits;
+}
+
+// ───────────────────────── Sheet write ─────────────────────────
+function writeApplication(app) {
+  var sheet = SpreadsheetApp.openById(SHEET_ID);
+  var tab = sheet.getSheetByName(app.tabName);
   if (!tab) {
-    tab = ss.insertSheet(app.location.tab);
-    tab.appendRow(HEADERS);
+    tab = sheet.insertSheet(app.tabName);
+    tab.appendRow(BASE_HEADERS.concat(EXTRA_HEADERS));
     tab.getRange('1:1').setFontWeight('bold');
   }
-  tab.appendRow([app.timestamp, app.source, app.role, app.firstName, app.lastName, app.mobile, app.email,
-    app.postcode, app.shift, app.hours, app.experience, app.message, app.sponsorship, app.score, app.status, '', '']);
-  var row = tab.getLastRow();
-  tab.getRange(row, HEADERS.indexOf('Status') + 1).setBackground(app.statusColour);
+  ensureHeaders(tab);
+  tab.appendRow(app.row);
+  var lastRow = tab.getLastRow();
+  tab.getRange(lastRow, STATUS_COL).setBackground(app.statusColor);
   SpreadsheetApp.flush();
-  return row;
+  return lastRow;
 }
 
-function sendCandidateEmail(app) {
-  var loc = app.location;
-  var calendly = app.status === 'Shortlist'
-    ? '<p>To make things easy, you can book a time that suits you using the link below. Simply pick a slot and we\'ll call you then.</p>' +
-      '<p style="margin:20px 0;"><a href="' + loc.calendlyUrl + '" style="display:inline-block;background:#2d4a2d;color:#ffffff;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;">Book Your Call</a></p>'
-    : '';
-  MailApp.sendEmail({
-    to: app.email,
-    subject: 'Thanks for applying — ' + loc.brandName,
-    name: loc.brandName + ' Careers',
-    replyTo: loc.managerEmail,
-    htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">' +
-      '<h2 style="color:#2d4a2d;">Hi ' + app.firstName + ',</h2>' +
-      '<p>Thank you so much for getting in touch — we\'re really pleased you\'re interested in joining our team at ' + loc.brandName + '.</p>' +
-      '<p>We\'ve received your application and one of our team will give you a quick call within the next 24 hours to have an informal chat. It\'s nothing formal — just a chance for us to tell you a bit more about the role and for you to ask any questions.</p>' +
-      calendly +
-      '<p>If you have any questions in the meantime, feel free to reply to this email.</p>' +
-      '<br><p>Warm regards,<br><strong>The Team at ' + loc.brandName + '<br>Roseville Care Group</strong></p></div>'
-  });
-  console.log('Candidate email sent to ' + app.email);
+// Appends any of the three new headers that an existing tab's header row lacks. Runs once per tab.
+function ensureHeaders(tab) {
+  var lastCol = Math.max(tab.getLastColumn(), 1);
+  var header = tab.getRange(1, 1, 1, lastCol).getValues()[0].map(function(h) { return String(h).trim(); });
+  var missing = EXTRA_HEADERS.filter(function(h) { return header.indexOf(h) === -1; });
+  if (!missing.length) return;
+  var start = header.length;
+  while (start > 0 && header[start - 1] === '') start--;   // first empty column after the real headers
+  tab.getRange(1, start + 1, 1, missing.length).setValues([missing]).setFontWeight('bold');
+  console.log('Added headers to "' + tab.getName() + '": ' + missing.join(', '));
 }
 
-function sendManagerEmail(app, saved) {
-  var loc = app.location;
-  var subject = (saved ? '' : 'ACTION NEEDED (not saved to tracker) — ') +
-    app.status + ' applicant: ' + app.firstName + ' ' + app.lastName + ' — ' + loc.brandName;
-  var trackerUrl = 'https://docs.google.com/spreadsheets/d/' + CONFIG.SHEET_ID + '/edit';
-  MailApp.sendEmail({
-    to: loc.managerEmail,
-    subject: subject,
-    name: loc.brandName + ' Careers',
-    htmlBody: '<div style="font-family:Arial,sans-serif;">' +
-      '<h3 style="color:#2d4a2d;">New application — ' + app.status + '</h3>' +
-      (saved ? '' : '<p style="color:#b00;"><strong>This application could NOT be written to the tracker. Please add it by hand.</strong></p>') +
-      '<p><strong>Name:</strong> ' + app.firstName + ' ' + app.lastName + '</p>' +
-      '<p><strong>Role:</strong> ' + app.role + '</p>' +
-      '<p><strong>Location:</strong> ' + loc.brandName + '</p>' +
-      '<p><strong>Phone:</strong> ' + app.mobile + '</p>' +
-      '<p><strong>Email:</strong> ' + app.email + '</p>' +
-      '<p><strong>Postcode:</strong> ' + app.postcode + '</p>' +
-      '<p><strong>Shifts:</strong> ' + app.shift + ' &nbsp; <strong>Hours:</strong> ' + app.hours + '</p>' +
-      '<p><strong>Experience:</strong> ' + app.experience + '</p>' +
-      '<p><strong>Sponsorship:</strong> ' + app.sponsorship + '</p>' +
-      '<p><strong>Message:</strong> ' + app.message + '</p>' +
-      '<p><strong>Score:</strong> ' + app.score + '/7</p>' +
-      '<p><a href="' + trackerUrl + '">View in Tracker</a>' + (saved ? ' (tab "' + loc.tab + '", row ' + app.rowNumber + ')' : '') + '</p></div>'
-  });
-  console.log('Manager email sent to ' + loc.managerEmail);
-}
+// ───────────────────────── Emails (unchanged) ─────────────────────────
+function sendEmails(app) {
+  var source = app.source, firstName = app.firstName, lastName = app.lastName, email = app.email,
+      mobile = app.mobile, role = app.role, experience = app.experience, score = app.score, status = app.status;
 
-function notifyFallback(subject, body) {
+  // ── Location config (Melksham → Limetree → Lodge → default York/Able Carers) ──
+  var config;
+  if (source.indexOf('Melksham') > -1) {
+    config = {
+      brandName: 'The Old Parsonage',
+      emailSubject: 'Thanks for applying — The Old Parsonage',
+      signOff: 'The Team at The Old Parsonage<br>Roseville Care Group',
+      senderName: 'The Old Parsonage Careers',
+      managerEmail: 'manager.oldparsonage@rosevillecaregroup.co.uk',
+      calendlyUrl: 'https://calendly.com/manager-oldparsonage-rosevillecaregroup/application-call-the-old-parsonage'
+    };
+  } else if (source.indexOf('Limetree') > -1) {
+    config = {
+      brandName: 'Limetree House',
+      emailSubject: 'Thanks for applying — Limetree House',
+      signOff: 'The Team at Limetree House<br>Roseville Care Group',
+      senderName: 'Limetree House Careers',
+      managerEmail: 'manager.limetrees@rosevillecaregroup.co.uk',
+      calendlyUrl: 'https://calendly.com/manager-limetrees-rosevillecaregroup/application-call-limetree-house'
+    };
+  } else if (source.indexOf('Lodge') > -1) {
+    config = {
+      brandName: 'The Lodge',
+      emailSubject: 'Thanks for applying — The Lodge',
+      signOff: 'The Team at The Lodge<br>Roseville Care Group',
+      senderName: 'The Lodge Careers',
+      managerEmail: 'manager.lodge@rosevillecaregroup.co.uk',
+      calendlyUrl: 'https://calendly.com/manager-lodge-rosevillecaregroup/application-call-the-lodge'
+    };
+  } else {
+    config = {
+      brandName: 'Able Carers',
+      emailSubject: 'Thanks for applying — Able Carers',
+      signOff: 'The Team at Able Carers<br>Roseville Care Group',
+      senderName: 'Able Carers Careers',
+      managerEmail: 'manager.ablecarers@rosevillecaregroup.co.uk',
+      calendlyUrl: 'https://calendly.com/manager-ablecarers-rosevillecaregroup/application-call-able-carers'
+    };
+  }
+
+  // ── Calendly block for Shortlisted candidates ──
+  var calendlyBlock = '';
+  if (status === 'Shortlist') {
+    calendlyBlock =
+      '<p>To make things easy, you can book a time that suits you using the link below. Simply pick a slot and we\'ll call you then.</p>' +
+      '<p style="margin:20px 0;"><a href="' + config.calendlyUrl + '" style="display:inline-block;background:#2d4a2d;color:#ffffff;padding:12px 28px;border-radius:4px;text-decoration:none;font-weight:bold;">Book Your Call</a></p>';
+  }
+
+  // ── Candidate auto-response email ──
   try {
-    MailApp.sendEmail({ to: CONFIG.FALLBACK_EMAIL, subject: subject, body: body });
-  } catch (err) {
-    console.error('Fallback email FAILED: ' + err);
+    if (email) {
+      GmailApp.sendEmail(email, config.emailSubject,
+        '',
+        {
+          htmlBody: '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">' +
+            '<h2 style="color:#2d4a2d;">Hi ' + firstName + ',</h2>' +
+            '<p>Thank you so much for getting in touch — we\'re really pleased you\'re interested in joining our team at ' + config.brandName + '.</p>' +
+            '<p>We\'ve received your application and one of our team will give you a quick call within the next 24 hours to have an informal chat. It\'s nothing formal — just a chance for us to tell you a bit more about the role and for you to ask any questions.</p>' +
+            calendlyBlock +
+            '<p>If you have any questions in the meantime, feel free to reply to this email.</p>' +
+            '<br><p>Warm regards,<br><strong>' + config.signOff + '</strong></p></div>',
+          name: config.senderName
+        }
+      );
+    }
+  } catch(emailErr) {
+    console.error('Candidate email error: ' + emailErr);
+  }
+
+  // ── Shortlist alert ──
+  if (status === 'Shortlist') {
+    try {
+      GmailApp.sendEmail(config.managerEmail, 'New Shortlisted Applicant - ' + firstName + ' ' + lastName,
+        '',
+        {
+          htmlBody: '<div style="font-family:Arial,sans-serif;">' +
+            '<h3 style="color:#2d4a2d;">New Shortlisted Application</h3>' +
+            '<p><strong>Name:</strong> ' + firstName + ' ' + lastName + '</p>' +
+            '<p><strong>Role:</strong> ' + role + '</p>' +
+            '<p><strong>Location:</strong> ' + config.brandName + '</p>' +
+            '<p><strong>Phone:</strong> ' + mobile + '</p>' +
+            '<p><strong>Email:</strong> ' + email + '</p>' +
+            '<p><strong>Score:</strong> ' + score + '/7</p>' +
+            '<p><strong>Experience:</strong> ' + experience + '</p>' +
+            '<p><a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit">View in Tracker</a></p></div>',
+          name: config.senderName
+        }
+      );
+    } catch(alertErr) {
+      console.error('Manager alert email error: ' + alertErr);
+    }
   }
 }
 
-function respond(result, text) {
-  // Pages post with mode:'no-cors' so they cannot read this, but it shows under Executions and in curl tests.
-  return ContentService.createTextOutput(text + ' ' + JSON.stringify(result)).setMimeType(ContentService.MimeType.TEXT);
-}
+// ───────────────────────── Editor test: run before deploying ─────────────────────────
+// Writes one fake row per home through writeApplication(), checks it landed on the right tab,
+// deletes it, and logs PASS/FAIL. Sends no emails.
+function testAllRoutes() {
+  var routes = [
+    { source: 'Melksham Landing Page',       role: 'Care Assistant', tab: 'Melksham' },
+    { source: 'York Landing Page',           role: 'Home Carer',     tab: 'York' },
+    { source: 'Limetree House Landing Page', role: 'Care Assistant', tab: 'Limetree House' },
+    { source: 'The Lodge Landing Page',      role: 'Care Assistant', tab: 'The Lodge' }
+  ];
+  var sheet = SpreadsheetApp.openById(SHEET_ID);
+  var allPassed = true;
 
-// ───────────────────────── Run from the editor ─────────────────────────
-// Select selfTest in the function dropdown and press Run. Check the Execution log,
-// the tracker's Melksham tab, and the inboxes.
-function selfTest() {
-  var fake = {
-    postData: { contents: JSON.stringify({
-      source: 'Melksham Landing Page', role: 'Care Assistant', firstName: 'Test', lastName: 'Applicant',
-      mobile: '07000000000', email: CONFIG.FALLBACK_EMAIL, postcode: 'SN12 6AA',
-      shift: 'Days and evenings', hours: 'Full time', experience: '3+ years experience',
-      message: 'selfTest run ' + new Date().toISOString(), sponsorship: 'No'
-    }) }
-  };
-  var out = doPost(fake).getContent();
-  console.log('selfTest result: ' + out);
-  console.log('Email quota remaining: ' + MailApp.getRemainingDailyQuota());
-  return out;
+  routes.forEach(function(r) {
+    var marker = 'testAllRoutes ' + new Date().toISOString();
+    var payload = {
+      source: r.source, role: r.role, timestamp: new Date().toISOString(),
+      firstName: 'TEST', lastName: 'ROUTE', phone: '+44 7543 277144', email: '  Test.Route@Example.COM ',
+      postcode: 'yo26 6dl', shifts: 'Days', hours: 'Full-time', experience: '3+ years experience',
+      availability: 'Immediately', 'requires-sponsorship': 'No', message: marker,
+      channel: 'test', campaign: 'testAllRoutes'
+    };
+    var result = 'FAIL';
+    var detail = '';
+    try {
+      var app = buildApplication(payload);
+      var rowNum = writeApplication(app);
+      var tab = sheet.getSheetByName(r.tab);
+      var written = tab.getRange(rowNum, 1, 1, BASE_HEADERS.length + EXTRA_HEADERS.length).getValues()[0];
+      var header = tab.getRange(1, 1, 1, tab.getLastColumn()).getValues()[0];
+      var checks = [
+        [app.tabName === r.tab, 'routed to ' + app.tabName],
+        [written[1] === r.source && written[11] === marker, 'row content'],
+        [written[5] === '07543 277144', 'phone ' + written[5]],
+        [written[6] === 'test.route@example.com', 'email ' + written[6]],
+        [written[7] === 'YO26 6DL', 'postcode ' + written[7]],
+        [written[17] === 'Immediately' && written[18] === 'test' && written[19] === 'testAllRoutes', 'new columns'],
+        [EXTRA_HEADERS.every(function(h) { return header.indexOf(h) > -1; }), 'headers present']
+      ];
+      var failed = checks.filter(function(c) { return !c[0]; }).map(function(c) { return c[1]; });
+      tab.deleteRow(rowNum);
+      result = failed.length ? 'FAIL' : 'PASS';
+      detail = failed.length ? ' — ' + failed.join('; ') : ' — row ' + rowNum + ' written and deleted';
+    } catch(err) {
+      detail = ' — ' + err;
+    }
+    if (result === 'FAIL') allPassed = false;
+    console.log(result + ': ' + r.tab + ' (' + r.source + ')' + detail);
+  });
+
+  console.log(allPassed ? 'ALL ROUTES PASS' : 'ONE OR MORE ROUTES FAILED');
+  return allPassed;
 }

@@ -1,40 +1,50 @@
-# Recruitment form webhook — where applications go, and how to fix the tracker
+# Recruitment site — deploy notes (brief v2, 25 Oct 2026)
 
-## How the system is wired
+Four landing pages on Netlify post applications to one Google Apps Script web app,
+which writes to the **Main** tracker and sends the emails. This folder holds the
+script; `../co work roseville recruitment/snippets/` holds the page snippets that
+are already applied to `roseville-site/`.
 
-| Piece | Where it lives | Notes |
+| Piece | Where | ID |
 |---|---|---|
-| Landing pages (`/melksham`, `/york`, `/lodge`, `/limetreehouse`) | Netlify site `roseville-care-recruitment`, custom domain `rosevillecaregroup.co.uk` | Static HTML. GitHub (`co work roseville recruitment/roseville-site/`) holds a copy; Netlify is not deployed from GitHub unless it has since been linked. |
-| Form handler | Google Apps Script web app, deployment ID starting `AKfycbykQl3IQMAe…` | All four pages POST to this one URL with `mode: 'no-cors'`. The script writes the row to a spreadsheet and sends the emails. |
-| Tracker spreadsheet | Google Sheets, ID in `CONFIG.SHEET_ID` of `Code.gs` | The previous shared script (`main-webhook.js`) wrote to sheet `1wSZeKo4…`, **not** the "Roseville Recruitment Tracker" (`1ueL81uM…`). |
+| Pages | Netlify site `roseville-care-recruitment`, folder `roseville-site/` | drag-and-drop deploy |
+| Webhook | Apps Script "Roseville Recruitment — Main Webhook", owner `recruitment@rosevillecaregroup.co.uk` | deployment `AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g` |
+| Main tracker | Google Sheet, tabs `Melksham`, `York`, `Limetree House`, `The Lodge` | `1wSZeKo4pmvtxbgHOwEzDNOxD7zBdgWoRrGsUZXZXk3I` |
 
-The page always shows the "thank you" screen, whether or not the POST succeeded. The browser cannot see the response because of `no-cors`. So the only places that prove an application arrived are the Apps Script **Executions** log and the spreadsheet the deployed script writes to.
+## 1. Webhook (`Code.gs`) — deploy as a new version of the existing deployment
 
-## Finding the two missing Melksham applications
+1. Manual first: on the Main tracker, rename the `Able carers` tab back to **`York`**. The script routes York submissions to a tab called `York` and will otherwise create a new one.
+2. Open the "Roseville Recruitment — Main Webhook" project as `recruitment@`, replace the contents of `Code.gs` with this folder's `Code.gs`, save.
+3. Run **`testAllRoutes`** from the function dropdown. Approve permissions if asked. The execution log must show `PASS` for Melksham, York, Limetree House and The Lodge, then `ALL ROUTES PASS`. Each test row is written and deleted; no emails are sent. The first run also appends the three new headers (`Start Availability`, `Channel`, `Campaign`) to each tab.
+4. Deploy → **Manage deployments** → pencil on the existing deployment → Version **New version** → Deploy. Do **not** create a new deployment: the URL is hard-coded in four live pages.
 
-Do these in order. Stop as soon as you find them.
+What changed, and only this: three appended columns populated from `availability`, `channel`, `campaign`; email lower-cased and trimmed, postcode upper-cased, phone digits-only and formatted `07543 277144`; JSON responses (`{ok:true}` / `{ok:false,message}`); the sheet write is wrapped so a failure emails `recruitment@` with subject `APPLICATION NOT SAVED — <source>` and the full payload, then returns `{ok:false}`; `testAllRoutes()`. Sheet ID, routing, scoring, thresholds, sponsorship reject, candidate email, Calendly block and shortlist alert are untouched. `Logger.log` became `console.log` so web-app errors show under Executions.
 
-1. **Open the manager's alert email.** The "View in Tracker" link in the old script's email points at the spreadsheet the *deployed* code writes to. Click it. If it opens a spreadsheet you did not know about, that is where the rows are. The email itself also carries name, phone, email and score, so the candidate data is recoverable from it even if the sheet is wrong.
-2. **Check Executions.** In the Apps Script editor for the project that owns deployment `AKfycbykQl3…` (Deploy → Manage deployments lists it), open **Executions** on the left. Every website submission is a `doPost` run. The old code only used `Logger.log`, which is invisible for web-app runs, so a run can show "Completed" and still have failed to email. If there are no `doPost` runs at the times the manager received her emails, the emails did not come from this deployment and another script (the older per-location one, deployment `AKfycbyW_TGHk…` owned by manager.oldparsonage@) handled them.
-3. **Check the other spreadsheet.** Sheet `1wSZeKo4pmvtxbgHOwEzDNOxD7zBdgWoRrGsUZXZXk3I` is the one `main-webhook.js` hard-codes. It may be owned by whichever Google account deployed the script, in which case the managers cannot see it. Open it as that account and look at the Melksham tab.
-4. **Open the deployed URL in a browser** once the new `Code.gs` is live: `https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec`. It prints the script version, the account it runs as, the spreadsheet name and URL, the tabs with row counts, and the email quota. The old script prints nothing useful for GET.
+## 2 & 3. Pages — redeploy `roseville-site/` to Netlify
 
-## Deploying the fix (keeps the same URL, no website change needed)
+The five files in `roseville-site/` already carry the new form handler and the tracking blocks. Before uploading:
 
-1. In the Apps Script project that owns deployment `AKfycbykQl3…`, replace the contents of `Code.gs` with the `Code.gs` in this folder.
-2. Set `CONFIG.SHEET_ID` to the spreadsheet the managers actually use. It defaults to the Roseville Recruitment Tracker (`1ueL81uMGJHbE14fVfwTbiVDb4nu9R6xQdGH9dCvfVmo`). The account that runs the script must have edit access to that file.
-3. Run `selfTest` from the function dropdown once. Approve the permissions prompt. Check the Execution log, the tracker's Melksham tab (a "Test Applicant" row should appear) and the fallback inbox.
-4. Deploy → **Manage deployments** → pencil icon on the existing deployment → Version: **New version** → Deploy. Editing the existing deployment keeps the `/exec` URL, so the HTML pages need no change. Creating a *new* deployment would change the URL and the pages would keep posting to the old code.
-5. Confirm by opening the `/exec` URL in a browser (step 4 above) and by submitting the live form once.
-6. Delete the test rows from the tracker.
+1. **Phone numbers.** `melksham.html` and `york.html` have `var PHONE = ''` with a TODO. Fill in The Old Parsonage and Able Carers numbers; until then the failure message omits the "call us" line. Limetree House (`01904 795280`) and The Lodge (`01904 430781`) are set.
+2. **Analytics IDs.** Create the GA4 property and Meta Pixel, then replace the placeholders in all five files:
+   ```
+   sed -i 's/G-XXXXXXXXXX/G-<real>/g; s/000000000000000/<pixel id>/g' roseville-site/*.html
+   ```
+   In GA4, mark `application_submit` as a key event.
+3. Upload the `roseville-site/` folder to Netlify (Deploys → drag and drop).
 
-## What changed in the script
+Form behaviour now: POST as `text/plain;charset=utf-8` with no `no-cors`, so the JSON reply is readable. The success panel shows only when the HTTP status is OK **and** the body is `{ok:true}`. Otherwise the button is re-enabled and an inline error with a `tel:` link appears; the success panel never shows. The button is disabled while in flight, so a double-click produces one row. `utm_source/medium/campaign/content` are captured on any page (the hub included), kept in `sessionStorage`, and sent as `channel`, `campaign`, `content`, `medium`; with no tags the referrer decides facebook / instagram / indeed / google / direct. `gtag('event','application_submit')` and `fbq('track','Lead')` fire on success only. All existing fields are sent under their existing names; York's `transport` is also sent as `hasCar` so the car point in the scoring model works.
 
-- One `CONFIG.SHEET_ID` constant instead of a hard-coded ID buried in `doPost`, and the same ID is used in the "View in Tracker" link.
-- `console.log` / `console.error` instead of `Logger.log`, so web-app runs show their errors under Executions.
-- The spreadsheet write, candidate email and manager email are each in their own try/catch. One failing no longer hides the others.
-- The manager is emailed for **every** application (set `NOTIFY_MANAGER_ON_EVERY_APPLICATION` to `false` to go back to shortlist-only), and the subject says "ACTION NEEDED (not saved to tracker)" when the sheet write failed.
-- Any error also sends the full application to `CONFIG.FALLBACK_EMAIL`, so a candidate can never vanish silently.
-- `doGet` diagnostics page and a `selfTest` function.
-- `MailApp` with `replyTo` set to the location manager, so candidate replies reach the home rather than the script owner.
-- Scoring and statuses are unchanged.
+## Verification against the acceptance criteria
+
+| # | Check | How |
+|---|---|---|
+| 1 | `testAllRoutes()` PASS ×4 | Apps Script editor log |
+| 2 | Real submission per page lands on the right tab with the three new columns filled | submit once per page, then delete the rows |
+| 3 | Candidate email, Calendly on Shortlist, manager alert | use a Shortlist-scoring test submission |
+| 4 | Broken endpoint → inline error, no success, `APPLICATION NOT SAVED` email | temporarily change `SHEET_ID` to an invalid ID, deploy a version, submit, then restore |
+| 5 | GA4 Realtime shows page view and `application_submit` | after real IDs are in |
+| 6 | Meta Events Manager shows PageView and Lead | after real IDs are in |
+| 7 | Tagged URL → Channel and Campaign populated | open a link from `UTM-LINKS.md` |
+| 8 | Double-click → one row | button is disabled in flight |
+
+Automated checks run on 25 Oct 2026 before commit: the script under stubbed Sheets/Gmail (header append, normalisation, routing, failure email, JSON replies, `testAllRoutes` clean-up) and the pages in headless Chromium with a mocked endpoint (success only on `{ok:true}`, error on `{ok:false}` / network failure / HTTP 500, one request on triple submit, UTM carry-over from the hub, referrer sniffing, York `hasCar`, `form_viewed` once, no page errors).

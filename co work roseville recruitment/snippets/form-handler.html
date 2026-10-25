@@ -1,0 +1,123 @@
+<!-- ============================================================================
+     Roseville application form handler  (v2, 25 Oct 2026)
+     Replaces the old submit handler on melksham / york / limetreehouse / lodge.
+     Set the four constants per page. SOURCE must match exactly: the webhook
+     routes on it and picks the Calendly link from it.
+
+       melksham.html       SOURCE 'Melksham Landing Page'        ROLE 'Care Assistant'  PHONE <OP number>
+       york.html           SOURCE 'York Landing Page'            ROLE 'Home Carer'      PHONE '01904 ...'
+       limetreehouse.html  SOURCE 'Limetree House Landing Page'  ROLE 'Care Assistant'  PHONE '01904 795280'
+       lodge.html          SOURCE 'The Lodge Landing Page'       ROLE 'Care Assistant'  PHONE '01904 430781'
+     ============================================================================ -->
+<script>
+(function () {
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec';
+  var SOURCE = '__SOURCE__';
+  var ROLE = '__ROLE__';
+  var PHONE = '__PHONE__';   // shown with a tel: link when a submission fails; leave '' to omit
+
+  var form = document.getElementById('applicationForm');
+  if (!form) return;
+  var btn = form.querySelector('button[type="submit"]');
+  var successState = document.getElementById('successState');
+  var wrapper = document.getElementById('form-wrapper') || form;
+  var btnLabel = btn.textContent;
+  var inFlight = false;
+
+  // ── Inline error block (inserted above the button, hidden until needed) ──
+  var style = document.createElement('style');
+  style.textContent = '.form-error{display:none;margin:0 0 14px;padding:12px 14px;border-radius:6px;background:#fdecea;color:#8a1c1c;font-size:0.9rem;line-height:1.5}' +
+    '.form-error a{color:inherit;font-weight:600}.submit-btn[disabled]{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none}';
+  document.head.appendChild(style);
+  var errorEl = document.createElement('div');
+  errorEl.className = 'form-error';
+  errorEl.setAttribute('role', 'alert');
+  btn.parentNode.insertBefore(errorEl, btn);
+
+  function showError() {
+    var phone = PHONE ? ', or call us on <a href="tel:' + PHONE.replace(/\s+/g, '') + '">' + PHONE + '</a> and we\'ll take your details over the phone' : '';
+    errorEl.innerHTML = 'Sorry, we couldn\'t send your application just now. Please try again' + phone + '.';
+    errorEl.style.display = 'block';
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ── Attribution: utm_* from the URL → sessionStorage → referrer sniff ──
+  var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+  function getAttribution() {
+    var params = new URLSearchParams(window.location.search);
+    var utm = {};
+    UTM_KEYS.forEach(function (k) {
+      var v = params.get(k);
+      try {
+        if (v) { sessionStorage.setItem(k, v); } else { v = sessionStorage.getItem(k); }
+      } catch (e) { /* storage blocked; use URL value only */ }
+      if (v) utm[k] = v;
+    });
+    var channel = utm.utm_source;
+    if (!channel) {
+      var ref = (document.referrer || '').toLowerCase();
+      if (/facebook|fb\.com|fb\.me/.test(ref) || params.has('fbclid')) channel = 'facebook';
+      else if (/instagram/.test(ref)) channel = 'instagram';
+      else if (/indeed/.test(ref)) channel = 'indeed';
+      else if (/google/.test(ref) || params.has('gclid')) channel = 'google';
+      else channel = 'direct';
+    }
+    return {
+      channel: channel.toLowerCase(),
+      campaign: utm.utm_campaign || '',
+      content: utm.utm_content || '',
+      medium: utm.utm_medium || ''
+    };
+  }
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    if (inFlight) return;               // double-click guard: one request, one row
+    inFlight = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    errorEl.style.display = 'none';
+
+    var entry = Object.fromEntries(new FormData(form).entries());   // every field, existing names
+    entry.timestamp = new Date().toISOString();
+    entry.source = SOURCE;
+    entry.role = ROLE;
+    if (entry.transport !== undefined && entry.hasCar === undefined) entry.hasCar = entry.transport;   // York: webhook scores hasCar
+    var attr = getAttribution();
+    entry.channel = attr.channel;
+    entry.campaign = attr.campaign;
+    entry.content = attr.content;
+    entry.medium = attr.medium;
+    entry.page = window.location.pathname;
+
+    var ok = false, message = '';
+    try {
+      var res = await fetch(ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // simple request: no preflight, response readable
+        body: JSON.stringify(entry)
+      });
+      var data = null;
+      try { data = await res.json(); } catch (parseErr) { message = 'Unreadable reply (' + res.status + ')'; }
+      ok = res.ok && !!data && data.ok === true;
+      if (!ok && !message) message = (data && data.message) || ('HTTP ' + res.status);
+    } catch (err) {
+      message = (err && err.message) || 'Network error';
+    }
+
+    if (ok) {
+      form.style.display = 'none';
+      successState.style.display = 'block';
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof gtag === 'function') gtag('event', 'application_submit', { source: SOURCE, role: ROLE, channel: attr.channel, campaign: attr.campaign, content: attr.content });
+      if (typeof fbq === 'function') fbq('track', 'Lead', { content_name: SOURCE, content_category: ROLE });
+    } else {
+      console.error('Submission failed:', message);
+      showError();
+      inFlight = false;
+      btn.disabled = false;
+      btn.textContent = btnLabel;
+    }
+  });
+})();
+</script>

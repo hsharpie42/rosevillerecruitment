@@ -1,0 +1,56 @@
+<!-- ============================================================================
+     Roseville tracking snippets  (25 Oct 2026)
+     Blocks A and B go in <head> on all five pages (index included).
+     Block C goes before </body> on all five pages.
+     Replace G-XXXXXXXXXX (GA4 measurement ID) and 000000000000000 (Meta Pixel ID)
+     on every page before launch:
+       sed -i 's/G-XXXXXXXXXX/G-REAL/g; s/000000000000000/REALPIXEL/g' roseville-site/*.html
+     ============================================================================ -->
+
+<!-- BLOCK A: Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-XXXXXXXXXX');
+</script>
+
+<!-- BLOCK B: Meta Pixel -->
+<script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '000000000000000');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=000000000000000&ev=PageView&noscript=1"/></noscript>
+
+<!-- BLOCK C: UTM capture + form_viewed (application_submit / Lead are fired by the form handler) -->
+<script>
+(function () {
+  // Persist utm_* for the session so a visitor who lands on the hub and then opens a home page keeps attribution.
+  var params = new URLSearchParams(window.location.search);
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) {
+    var v = params.get(k);
+    if (v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  });
+
+  // form_viewed: once, when the application form scrolls into view.
+  var formWrapper = document.getElementById('form-wrapper');
+  if (!formWrapper || !('IntersectionObserver' in window)) return;
+  var fired = false;
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (fired || !entry.isIntersecting) return;
+      fired = true;
+      observer.disconnect();
+      if (typeof gtag === 'function') gtag('event', 'form_viewed', { page: window.location.pathname });
+    });
+  }, { threshold: 0.25 });
+  observer.observe(formWrapper);
+})();
+</script>
