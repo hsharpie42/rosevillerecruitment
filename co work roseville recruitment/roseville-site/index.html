@@ -61,6 +61,12 @@
     border-color: rgba(232,160,48,0.4);
     transform: translateY(-4px);
   }
+  .card.card-other {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc(50% - 10px);
+    margin-top: 28px;
+  }
   .card h2 {
     font-family: 'Playfair Display', serif;
     font-size: 1.3rem;
@@ -86,6 +92,7 @@
   }
   @media (max-width: 600px) {
     .cards { grid-template-columns: 1fr; }
+    .card.card-other { width: 100%; margin-top: 16px; }
   }
 </style>
 <!-- BLOCK A: Google Analytics 4 -->
@@ -141,8 +148,8 @@
       <p>The Lodge, Heslington, York. Full and part-time roles. From £12.71/hr.</p>
       <span class="arrow">View & apply →</span>
     </a>
-    <a href="/melksham-cook.html" class="card">
-      <h2>Melksham, Wiltshire</h2>
+    <a href="/melksham-cook.html" class="card card-other">
+      <h2>The Old Parsonage</h2>
       <div class="role">Part-Time Cook</div>
       <p>The Old Parsonage. Day shifts, no late nights, no split shifts.</p>
       <span class="arrow">View & apply →</span>
