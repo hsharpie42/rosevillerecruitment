@@ -690,6 +690,27 @@
     .footer-right { text-align: center; }
   }
 </style>
+<!-- BLOCK A: Google Analytics 4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-1ZQCKZC1Q4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  gtag('js', new Date());
+  gtag('config', 'G-1ZQCKZC1Q4');
+</script>
+
+<!-- BLOCK B: Meta Pixel -->
+<script>
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+  document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '28509618148734858');
+  fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+  src="https://www.facebook.com/tr?id=28509618148734858&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
 
@@ -986,32 +1007,121 @@
   </div>
 </footer>
 
+<!-- Application form handler (v2) -->
 <script>
-  document.getElementById('applicationForm').addEventListener('submit', async function(e) {
+(function () {
+  var ENDPOINT = 'https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec';
+  var SOURCE = 'York Landing Page';
+  var ROLE = 'Home Carer';
+  var PHONE = '01904 795551';   // shown with a tel: link when a submission fails; leave '' to omit
+
+  var form = document.getElementById('applicationForm');
+  if (!form) return;
+  var btn = form.querySelector('button[type="submit"]');
+  var successState = document.getElementById('successState');
+  var wrapper = document.getElementById('form-wrapper') || form;
+  var btnLabel = btn.textContent;
+  var inFlight = false;
+
+  // ── Inline error block (inserted above the button, hidden until needed) ──
+  var style = document.createElement('style');
+  style.textContent = '.form-error{display:none;margin:0 0 14px;padding:12px 14px;border-radius:6px;background:#fdecea;color:#8a1c1c;font-size:0.9rem;line-height:1.5}' +
+    '.form-error a{color:inherit;font-weight:600}.submit-btn[disabled]{opacity:.65;cursor:not-allowed;transform:none;box-shadow:none}';
+  document.head.appendChild(style);
+  var errorEl = document.createElement('div');
+  errorEl.className = 'form-error';
+  errorEl.setAttribute('role', 'alert');
+  btn.parentNode.insertBefore(errorEl, btn);
+
+  function showError() {
+    var phone = PHONE ? ', or call us on <a href="tel:' + PHONE.replace(/\s+/g, '') + '">' + PHONE + '</a> and we\'ll take your details over the phone' : '';
+    errorEl.innerHTML = 'Sorry, we couldn\'t send your application just now. Please try again' + phone + '.';
+    errorEl.style.display = 'block';
+    errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  // ── Attribution: utm_* from the URL → sessionStorage → referrer sniff ──
+  var UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'];
+  function getAttribution() {
+    var params = new URLSearchParams(window.location.search);
+    var utm = {};
+    UTM_KEYS.forEach(function (k) {
+      var v = params.get(k);
+      try {
+        if (v) { sessionStorage.setItem(k, v); } else { v = sessionStorage.getItem(k); }
+      } catch (e) { /* storage blocked; use URL value only */ }
+      if (v) utm[k] = v;
+    });
+    var channel = utm.utm_source;
+    if (!channel) {
+      var ref = (document.referrer || '').toLowerCase();
+      if (/facebook|fb\.com|fb\.me/.test(ref) || params.has('fbclid')) channel = 'facebook';
+      else if (/instagram/.test(ref)) channel = 'instagram';
+      else if (/indeed/.test(ref)) channel = 'indeed';
+      else if (/google/.test(ref) || params.has('gclid')) channel = 'google';
+      else channel = 'direct';
+    }
+    return {
+      channel: channel.toLowerCase(),
+      campaign: utm.utm_campaign || '',
+      content: utm.utm_content || '',
+      medium: utm.utm_medium || ''
+    };
+  }
+
+  form.addEventListener('submit', async function (e) {
     e.preventDefault();
+    if (inFlight) return;               // double-click guard: one request, one row
+    inFlight = true;
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+    errorEl.style.display = 'none';
 
-    const data = new FormData(e.target);
-    const entry = Object.fromEntries(data.entries());
+    var entry = Object.fromEntries(new FormData(form).entries());   // every field, existing names
     entry.timestamp = new Date().toISOString();
-    entry.source = 'York Landing Page';
-    entry.role = 'Home Carer';
+    entry.source = SOURCE;
+    entry.role = ROLE;
+    if (entry.transport !== undefined && entry.hasCar === undefined) entry.hasCar = entry.transport;   // York: webhook scores hasCar
+    var attr = getAttribution();
+    entry.channel = attr.channel;
+    entry.campaign = attr.campaign;
+    entry.content = attr.content;
+    entry.medium = attr.medium;
+    entry.page = window.location.pathname;
 
+    var ok = false, message = '';
     try {
-      await fetch('https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec', {
+      var res = await fetch(ENDPOINT, {
         method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },   // simple request: no preflight, response readable
         body: JSON.stringify(entry)
       });
-    } catch(err) {
-      console.error('Submission error:', err);
+      var data = null;
+      try { data = await res.json(); } catch (parseErr) { message = 'Unreadable reply (' + res.status + ')'; }
+      ok = res.ok && !!data && data.ok === true;
+      if (!ok && !message) message = (data && data.message) || ('HTTP ' + res.status);
+    } catch (err) {
+      message = (err && err.message) || 'Network error';
     }
 
-    document.getElementById('applicationForm').style.display = 'none';
-    document.getElementById('successState').style.display = 'block';
-    document.getElementById('form-wrapper').scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (ok) {
+      form.style.display = 'none';
+      successState.style.display = 'block';
+      wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (typeof gtag === 'function') gtag('event', 'application_submit', { source: SOURCE, role: ROLE, channel: attr.channel, campaign: attr.campaign, content: attr.content });
+      if (typeof fbq === 'function') fbq('track', 'Lead', { content_name: SOURCE, content_category: ROLE });
+    } else {
+      console.error('Submission failed:', message);
+      showError();
+      inFlight = false;
+      btn.disabled = false;
+      btn.textContent = btnLabel;
+    }
   });
+})();
+</script>
 
+<script>
   // Animate personas on scroll
   const cards = document.querySelectorAll('.persona-card, .info-card, .req-item');
   const observer = new IntersectionObserver((entries) => {
@@ -1031,6 +1141,31 @@
     card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
     observer.observe(card);
   });
+</script>
+<!-- BLOCK C: UTM capture + form_viewed (application_submit / Lead are fired by the form handler) -->
+<script>
+(function () {
+  // Persist utm_* for the session so a visitor who lands on the hub and then opens a home page keeps attribution.
+  var params = new URLSearchParams(window.location.search);
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content'].forEach(function (k) {
+    var v = params.get(k);
+    if (v) { try { sessionStorage.setItem(k, v); } catch (e) {} }
+  });
+
+  // form_viewed: once, when the application form scrolls into view.
+  var formWrapper = document.getElementById('form-wrapper');
+  if (!formWrapper || !('IntersectionObserver' in window)) return;
+  var fired = false;
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (fired || !entry.isIntersecting) return;
+      fired = true;
+      observer.disconnect();
+      if (typeof gtag === 'function') gtag('event', 'form_viewed', { page: window.location.pathname });
+    });
+  }, { threshold: 0.25 });
+  observer.observe(formWrapper);
+})();
 </script>
 </body>
 </html>
