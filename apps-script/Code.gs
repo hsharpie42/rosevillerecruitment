@@ -5,7 +5,7 @@
  *
  * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID,
  * 7-point scoring and thresholds, sponsorship auto-reject, candidate email, Calendly block,
- * shortlist alert. Changed: York submissions go to the 'Able carers' tab. Added: three appended columns (Start Availability, Channel, Campaign),
+ * shortlist alert. Changed: York submissions go to the 'Able carers' tab; cook roles use their own 6-point scoring. Added: three appended columns (Start Availability, Channel, Campaign),
  * field normalisation, JSON responses, a try/catch around the sheet write that emails
  * recruitment@ with the payload on failure, and testAllRoutes().
  */
@@ -95,6 +95,22 @@ function buildApplication(data) {
   if (message && message.trim().length > 0) score++;
   if (data.hasCar && data.hasCar.toLowerCase() === 'yes') score++;
 
+  // ── Cook roles: score on cooking, not care ──
+  var isCook = role.toLowerCase().indexOf('cook') > -1;
+  var maxScore = 7;
+  if (isCook) {
+    maxScore = 6;
+    score = 0;
+    var exp = experience.toLowerCase();
+    if (exp.indexOf('3+') > -1) score += 3;
+    else if (exp.indexOf('1–3') > -1 || exp.indexOf('1-3') > -1) score += 2;
+    else if (exp.indexOf('some') > -1) score += 1;
+    if (shift && shift.toLowerCase().indexOf('day') > -1) score++;
+    var avail = (data.availability || '').toLowerCase();
+    if (avail.indexOf('immediately') > -1 || avail.indexOf('2 weeks') > -1) score++;
+    if (message && message.trim().length > 0) score++;
+  }
+
   var status = 'Rejected';
   var statusColor = '#f4cccc';
   if (sponsorship && (sponsorship.toLowerCase() === 'yes' || sponsorship.toLowerCase().indexOf('require') > -1)) {
@@ -115,7 +131,7 @@ function buildApplication(data) {
   return {
     source: source, tabName: tabName, row: row,
     firstName: firstName, lastName: lastName, mobile: mobile, email: email, role: role,
-    experience: experience, score: score, status: status, statusColor: statusColor
+    experience: experience, score: score, maxScore: maxScore, status: status, statusColor: statusColor
   };
 }
 
@@ -166,7 +182,7 @@ function ensureHeaders(tab) {
 // ───────────────────────── Emails (unchanged) ─────────────────────────
 function sendEmails(app) {
   var source = app.source, firstName = app.firstName, lastName = app.lastName, email = app.email,
-      mobile = app.mobile, role = app.role, experience = app.experience, score = app.score, status = app.status;
+      mobile = app.mobile, role = app.role, experience = app.experience, score = app.score, maxScore = app.maxScore, status = app.status;
 
   // ── Location config (Melksham → Limetree → Lodge → default York/Able Carers) ──
   var config;
@@ -250,7 +266,7 @@ function sendEmails(app) {
             '<p><strong>Location:</strong> ' + config.brandName + '</p>' +
             '<p><strong>Phone:</strong> ' + mobile + '</p>' +
             '<p><strong>Email:</strong> ' + email + '</p>' +
-            '<p><strong>Score:</strong> ' + score + '/7</p>' +
+            '<p><strong>Score:</strong> ' + score + '/' + maxScore + '</p>' +
             '<p><strong>Experience:</strong> ' + experience + '</p>' +
             '<p><a href="https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/edit">View in Tracker</a></p></div>',
           name: config.senderName
