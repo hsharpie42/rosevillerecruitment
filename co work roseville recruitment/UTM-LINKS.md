@@ -20,6 +20,26 @@ https://rosevillecaregroup.co.uk/<page>?utm_source=<source>&utm_medium=<medium>&
 Use lower case throughout and no spaces. Change only `utm_content` between
 creatives in the same campaign so results roll up per home.
 
+## Role in the link
+
+Each form has a "Which job are you applying for?" dropdown. Put the role in the
+link and it is pre-selected for the applicant:
+
+```
+https://rosevillecaregroup.co.uk/melksham?role=Cleaner%20%2F%20Domestic&utm_source=facebook&utm_medium=paid&utm_campaign=cleaner-melksham&utm_content=ad1-rate
+```
+
+`role=` matches by prefix, case-insensitively, so `role=cook`, `role=nurse`,
+`role=cleaner`, `role=laundry`, `role=maintenance`, `role=activities`,
+`role=kitchen`, `role=senior` and `role=night` all work on the home pages, and
+`role=live-in`, `role=senior` and `role=care%20coordinator` on York. A value that
+matches nothing leaves the dropdown blank and the applicant chooses. Name the
+campaign `<role>-<home>` for non-care roles, e.g. `cook-melksham`,
+`cleaner-lodge`, so the tracker's Campaign column shows the vacancy.
+
+Old cook adverts pointing at `/melksham-cook` still work: Netlify redirects them
+to `/melksham?role=Cook` with the UTM tags intact.
+
 ## Domain
 
 Use `https://rosevillecaregroup.co.uk/...` only once the Netlify domain release

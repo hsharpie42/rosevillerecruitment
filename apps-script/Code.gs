@@ -5,7 +5,7 @@
  *
  * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID,
  * 7-point scoring and thresholds, sponsorship auto-reject, candidate email, Calendly block,
- * shortlist alert. Changed: York submissions go to the 'Able carers' tab; cook roles use their own 6-point scoring. Added: three appended columns (Start Availability, Channel, Campaign),
+ * shortlist alert. Changed: York submissions go to the 'Able carers' tab; non-care roles (cook, kitchen, cleaner, laundry, activities, maintenance) use their own 6-point scoring. Added: three appended columns (Start Availability, Channel, Campaign),
  * field normalisation, JSON responses, a try/catch around the sheet write that emails
  * recruitment@ with the payload on failure, and testAllRoutes().
  */
@@ -95,10 +95,14 @@ function buildApplication(data) {
   if (message && message.trim().length > 0) score++;
   if (data.hasCar && data.hasCar.toLowerCase() === 'yes') score++;
 
-  // ── Cook roles: score on cooking, not care ──
-  var isCook = role.toLowerCase().indexOf('cook') > -1;
+  // ── Role-group scoring ──
+  var r = role.toLowerCase();
+  var isKitchen = r.indexOf('cook') > -1 || r.indexOf('kitchen') > -1;
+  var isCare = r.indexOf('care') > -1 || r.indexOf('nurse') > -1 || r.indexOf('something else') > -1;
   var maxScore = 7;
-  if (isCook) {
+  if (!isCare) {
+    // Cook, kitchen, cleaner, laundry, maintenance, activities:
+    // score on trade experience, days, start date, engagement
     maxScore = 6;
     score = 0;
     var exp = experience.toLowerCase();

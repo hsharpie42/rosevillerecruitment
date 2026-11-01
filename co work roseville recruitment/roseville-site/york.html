@@ -903,6 +903,18 @@
         </div>
 
         <div class="field">
+          <label>Which job are you applying for?</label>
+          <select id="role" name="role" required>
+            <option value="" disabled selected>Please choose…</option>
+            <option>Home Carer</option>
+            <option>Senior Home Carer</option>
+            <option>Live-in Carer</option>
+            <option>Care Coordinator</option>
+            <option value="Something else">Something else — I'll explain below</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label>Mobile number</label>
           <input type="tel" name="phone" placeholder="07700 900000" required>
         </div>
@@ -1013,6 +1025,7 @@
   var ENDPOINT = 'https://script.google.com/macros/s/AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g/exec';
   var SOURCE = 'York Landing Page';
   var ROLE = 'Home Carer';
+  var HOME = 'Able Carers';
   var PHONE = '01904 795551';   // shown with a tel: link when a submission fails; leave '' to omit
 
   var form = document.getElementById('applicationForm');
@@ -1069,6 +1082,20 @@
     };
   }
 
+  // ── Role: pre-select from ?role= (case-insensitive, prefix match; unknown values leave the placeholder) ──
+  var roleSelect = document.getElementById('role');
+  var urlRole = (new URLSearchParams(window.location.search).get('role') || '').trim();
+  function matchRoleOption(value) {
+    if (!roleSelect || !value) return null;
+    var wanted = value.toLowerCase();
+    var options = Array.prototype.slice.call(roleSelect.options).filter(function (o) { return o.value; });
+    for (var i = 0; i < options.length; i++) if (options[i].value.toLowerCase() === wanted) return options[i];
+    for (var j = 0; j < options.length; j++) if (options[j].value.toLowerCase().indexOf(wanted) === 0) return options[j];
+    return null;
+  }
+  var preselected = matchRoleOption(urlRole);
+  if (preselected) preselected.selected = true;
+
   form.addEventListener('submit', async function (e) {
     e.preventDefault();
     if (inFlight) return;               // double-click guard: one request, one row
@@ -1080,7 +1107,8 @@
     var entry = Object.fromEntries(new FormData(form).entries());   // every field, existing names
     entry.timestamp = new Date().toISOString();
     entry.source = SOURCE;
-    entry.role = ROLE;
+    var role = (entry.role || '').trim() || urlRole || ROLE;   // dropdown → ?role= → page default; never empty
+    entry.role = role;
     if (entry.transport !== undefined && entry.hasCar === undefined) entry.hasCar = entry.transport;   // York: webhook scores hasCar
     var attr = getAttribution();
     entry.channel = attr.channel;
@@ -1108,8 +1136,8 @@
       form.style.display = 'none';
       successState.style.display = 'block';
       wrapper.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      if (typeof gtag === 'function') gtag('event', 'application_submit', { source: SOURCE, role: ROLE, channel: attr.channel, campaign: attr.campaign, content: attr.content });
-      if (typeof fbq === 'function') fbq('track', 'Lead', { content_name: SOURCE, content_category: ROLE });
+      if (typeof gtag === 'function') gtag('event', 'application_submit', { home: HOME, role: role, source: SOURCE, channel: attr.channel, campaign: attr.campaign, content: attr.content });
+      if (typeof fbq === 'function') fbq('track', 'Lead', { content_name: role, content_category: HOME });
     } else {
       console.error('Submission failed:', message);
       showError();

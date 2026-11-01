@@ -1,0 +1,9 @@
+# Netlify redirects. First matching rule wins.
+# The cook vacancy used to have its own page; adverts still link to /melksham-cook.
+# Send them to the main page with Cook pre-selected, carrying the ad's UTM tags through.
+/melksham-cook  utm_source=:s  utm_medium=:m  utm_campaign=:c  utm_content=:ct  /melksham?role=Cook&utm_source=:s&utm_medium=:m&utm_campaign=:c&utm_content=:ct  301
+/melksham-cook  utm_source=:s  utm_medium=:m  utm_campaign=:c  /melksham?role=Cook&utm_source=:s&utm_medium=:m&utm_campaign=:c  301
+/melksham-cook  utm_source=:s  utm_campaign=:c  /melksham?role=Cook&utm_source=:s&utm_campaign=:c  301
+/melksham-cook  utm_source=:s  /melksham?role=Cook&utm_source=:s  301
+/melksham-cook  /melksham?role=Cook  301
+/melksham-cook.html  /melksham?role=Cook  301
