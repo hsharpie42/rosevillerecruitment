@@ -61,11 +61,34 @@
     border-color: rgba(232,160,48,0.4);
     transform: translateY(-4px);
   }
-  .card.card-other {
-    grid-column: 1 / -1;
-    justify-self: center;
-    width: calc(50% - 10px);
-    margin-top: 28px;
+  .card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .card-stack > .card:first-child {
+    flex: 1;   /* care cards fill the row so both homes' "Other roles" cards line up */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .card-stack > .card-small {
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .card.card-small {
+    padding: 14px 24px;
+  }
+  .card.card-small .role {
+    margin-bottom: 2px;
+  }
+  .card.card-small .arrow {
+    margin-top: 0;
+    font-size: 0.8rem;
+    color: rgba(255,255,255,0.5);
   }
   .card h2 {
     font-family: 'Playfair Display', serif;
@@ -92,7 +115,6 @@
   }
   @media (max-width: 600px) {
     .cards { grid-template-columns: 1fr; }
-    .card.card-other { width: 100%; margin-top: 16px; }
   }
 </style>
 <!-- BLOCK A: Google Analytics 4 -->
@@ -121,39 +143,57 @@
 <div class="container">
   <div class="badge">Roseville Care Group</div>
   <h1>Join our team.<br><em>Make a difference.</em></h1>
-  <p class="sub">We're hiring caring, compassionate people across our homes and home care services. Choose a location below to find out more and apply.</p>
+  <p class="sub">We're hiring across our homes and home care services — carers first, and every other role that keeps a home running. Choose a location below to find out more and apply.</p>
 
   <div class="cards">
+    <div class="card-stack">
     <a href="/melksham.html" class="card">
       <h2>The Old Parsonage</h2>
       <div class="role">Care Assistant</div>
       <p>The Old Parsonage, Melksham, Wiltshire, a residential home. Full and part-time roles. From £12.71/hr.</p>
       <span class="arrow">View & apply →</span>
     </a>
+    <a href="/melksham-roles.html" class="card card-small">
+      <div class="role">Other roles at The Old Parsonage</div>
+      <span class="arrow">Cook · Kitchen · Cleaning · Laundry · Activities · Maintenance · Nursing →</span>
+    </a>
+    </div>
+    <div class="card-stack">
     <a href="/york.html" class="card">
       <h2>York & Surrounding Areas</h2>
       <div class="role">Home Carer</div>
       <p>Community home care across York and villages. Flexible hours. From £13.00/hr.</p>
       <span class="arrow">View & apply →</span>
     </a>
+    <a href="/york-roles.html" class="card card-small">
+      <div class="role">Other roles at Able Carers</div>
+      <span class="arrow">Senior Home Carer · Live-in Carer · Care Coordinator →</span>
+    </a>
+    </div>
+    <div class="card-stack">
     <a href="/limetreehouse.html" class="card">
       <h2>Limetree House</h2>
       <div class="role">Care Assistant</div>
       <p>Limetree House, Upper Poppleton, York. Full and part-time roles. From £12.71/hr.</p>
       <span class="arrow">View & apply →</span>
     </a>
+    <a href="/limetreehouse-roles.html" class="card card-small">
+      <div class="role">Other roles at Limetree House</div>
+      <span class="arrow">Cook · Kitchen · Cleaning · Laundry · Activities · Maintenance · Nursing →</span>
+    </a>
+    </div>
+    <div class="card-stack">
     <a href="/lodge.html" class="card">
       <h2>The Lodge</h2>
       <div class="role">Care Assistant</div>
       <p>The Lodge, Heslington, York. Full and part-time roles. From £12.71/hr.</p>
       <span class="arrow">View & apply →</span>
     </a>
-    <a href="/melksham-cook.html" class="card card-other">
-      <h2>The Old Parsonage</h2>
-      <div class="role">Part-Time Cook</div>
-      <p>The Old Parsonage. Day shifts, no late nights, no split shifts.</p>
-      <span class="arrow">View & apply →</span>
+    <a href="/lodge-roles.html" class="card card-small">
+      <div class="role">Other roles at The Lodge</div>
+      <span class="arrow">Cook · Kitchen · Cleaning · Laundry · Activities · Maintenance · Nursing →</span>
     </a>
+    </div>
   </div>
 </div>
 <!-- BLOCK C: UTM capture + form_viewed (application_submit / Lead are fired by the form handler) -->

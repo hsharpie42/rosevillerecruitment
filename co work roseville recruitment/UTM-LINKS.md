@@ -20,6 +20,29 @@ https://rosevillecaregroup.co.uk/<page>?utm_source=<source>&utm_medium=<medium>&
 Use lower case throughout and no spaces. Change only `utm_content` between
 creatives in the same campaign so results roll up per home.
 
+## Role in the link
+
+The care pages (`/melksham`, `/york`, `/limetreehouse`, `/lodge`) are for the
+care assistant and home carer adverts. Every other vacancy uses the home's
+other-roles page (`/melksham-roles`, `/york-roles`, `/limetreehouse-roles`,
+`/lodge-roles`), which has a "Which job are you applying for?" dropdown. Put the
+role in the link and it is pre-selected for the applicant:
+
+```
+https://rosevillecaregroup.co.uk/melksham-roles?role=Cleaner%20%2F%20Domestic&utm_source=facebook&utm_medium=paid&utm_campaign=cleaner-melksham&utm_content=ad1-rate
+```
+
+`role=` matches by prefix, case-insensitively, so `role=cook`, `role=nurse`,
+`role=cleaner`, `role=laundry`, `role=maintenance`, `role=activities`,
+`role=kitchen`, `role=senior` and `role=night` all work on the home pages, and
+`role=live-in`, `role=senior` and `role=care%20coordinator` on York. A value that
+matches nothing leaves the dropdown blank and the applicant chooses. Name the
+campaign `<role>-<home>` for non-care roles, e.g. `cook-melksham`,
+`cleaner-lodge`, so the tracker's Campaign column shows the vacancy.
+
+Old cook adverts pointing at `/melksham-cook` still work: Netlify redirects them
+to `/melksham-roles?role=Cook` with the UTM tags intact.
+
 ## Domain
 
 Use `https://rosevillecaregroup.co.uk/...` only once the Netlify domain release
@@ -71,6 +94,18 @@ is complete and the pages load there. Until then use
 | Indeed listing | `https://rosevillecaregroup.co.uk/lodge?utm_source=indeed&utm_medium=organic&utm_campaign=lodge-ca&utm_content=listing` |
 | Gumtree listing | `https://rosevillecaregroup.co.uk/lodge?utm_source=gumtree&utm_medium=organic&utm_campaign=lodge-ca&utm_content=listing` |
 | Google ad | `https://rosevillecaregroup.co.uk/lodge?utm_source=google&utm_medium=paid&utm_campaign=lodge-ca&utm_content=search` |
+
+## Advert wording
+
+Every advert and listing must say that applicants need the right to work in the
+UK and that sponsorship is not available. Suggested line:
+
+> You must already have the right to work in the UK. We are unable to offer visa
+> sponsorship.
+
+The form repeats this and asks a right-to-work question. Nobody is rejected
+automatically on it: anyone who needs sponsorship or is unsure is flagged for the
+manager to check.
 
 ## Checking a link works
 

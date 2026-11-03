@@ -4,8 +4,9 @@
  * Deployment:    AKfycbykQl3IQMAee0VWzYbw5YXgaUHeNcBvw7KoWDVnyj3hDMyjXEhE8GRlfEMkq-avcVX_4g
  *
  * Targeted edit of the working webhook (25 Oct 2026). Unchanged: sheet ID,
- * 7-point scoring and thresholds, sponsorship auto-reject, candidate email, Calendly block,
- * shortlist alert. Changed: York submissions go to the 'Able carers' tab; cook roles use their own 6-point scoring. Added: three appended columns (Start Availability, Channel, Campaign),
+ * 7-point scoring and thresholds, candidate email, Calendly block,
+ * shortlist alert. Changed: York submissions go to the 'Able carers' tab; non-care roles (cook, kitchen, cleaner, laundry, activities, maintenance) use their own 6-point scoring;
+ * right-to-work answers other than a clear "no sponsorship needed" are flagged 'Review - Right to work' for the manager instead of auto-rejected. Added: three appended columns (Start Availability, Channel, Campaign),
  * field normalisation, JSON responses, a try/catch around the sheet write that emails
  * recruitment@ with the payload on failure, and testAllRoutes().
  */
@@ -95,10 +96,14 @@ function buildApplication(data) {
   if (message && message.trim().length > 0) score++;
   if (data.hasCar && data.hasCar.toLowerCase() === 'yes') score++;
 
-  // ── Cook roles: score on cooking, not care ──
-  var isCook = role.toLowerCase().indexOf('cook') > -1;
+  // ── Role-group scoring ──
+  var r = role.toLowerCase();
+  var isKitchen = r.indexOf('cook') > -1 || r.indexOf('kitchen') > -1;
+  var isCare = r.indexOf('care') > -1 || r.indexOf('nurse') > -1 || r.indexOf('something else') > -1;
   var maxScore = 7;
-  if (isCook) {
+  if (!isCare) {
+    // Cook, kitchen, cleaner, laundry, maintenance, activities:
+    // score on trade experience, days, start date, engagement
     maxScore = 6;
     score = 0;
     var exp = experience.toLowerCase();
@@ -113,10 +118,15 @@ function buildApplication(data) {
 
   var status = 'Rejected';
   var statusColor = '#f4cccc';
-  if (sponsorship && (sponsorship.toLowerCase() === 'yes' || sponsorship.toLowerCase().indexOf('require') > -1)) {
-    status = 'Rejected - Sponsorship';
-    statusColor = '#f4cccc';
-    score = 0;
+  // Right to work: answers that say the applicant can work here ("No - …" to needing sponsorship,
+  // including a time-limited visa that allows the work) are scored as normal. Needing sponsorship,
+  // "Not sure" or a blank answer is flagged for a manual check by the manager, never auto-rejected.
+  // The score is still calculated so the manager can see it.
+  var rtw = sponsorship.toLowerCase().trim();
+  var needsRightToWorkCheck = rtw === '' || rtw.indexOf('not sure') > -1 || rtw.indexOf('no') !== 0;
+  if (needsRightToWorkCheck) {
+    status = 'Review - Right to work';
+    statusColor = '#fce5cd';
   } else if (score >= 3) {
     status = 'Shortlist';
     statusColor = '#d9ead3';
@@ -131,7 +141,7 @@ function buildApplication(data) {
   return {
     source: source, tabName: tabName, row: row,
     firstName: firstName, lastName: lastName, mobile: mobile, email: email, role: role,
-    experience: experience, score: score, maxScore: maxScore, status: status, statusColor: statusColor
+    experience: experience, sponsorship: sponsorship, score: score, maxScore: maxScore, status: status, statusColor: statusColor
   };
 }
 
@@ -253,14 +263,17 @@ function sendEmails(app) {
     console.error('Candidate email error: ' + emailErr);
   }
 
-  // ── Shortlist alert ──
-  if (status === 'Shortlist') {
+  // ── Shortlist alert, and right-to-work review alert ──
+  var needsReview = status === 'Review - Right to work';
+  if (status === 'Shortlist' || needsReview) {
     try {
-      GmailApp.sendEmail(config.managerEmail, 'New Shortlisted Applicant - ' + firstName + ' ' + lastName,
+      GmailApp.sendEmail(config.managerEmail,
+        (needsReview ? 'Right-to-work check needed - ' : 'New Shortlisted Applicant - ') + firstName + ' ' + lastName,
         '',
         {
           htmlBody: '<div style="font-family:Arial,sans-serif;">' +
-            '<h3 style="color:#2d4a2d;">New Shortlisted Application</h3>' +
+            '<h3 style="color:#2d4a2d;">' + (needsReview ? 'Application needs a right-to-work check' : 'New Shortlisted Application') + '</h3>' +
+            (needsReview ? '<p>The applicant answered the right-to-work question with: <strong>' + app.sponsorship + '</strong>. Please check their status before deciding — do not reject on this alone. Their score is shown below for reference.</p>' : '') +
             '<p><strong>Name:</strong> ' + firstName + ' ' + lastName + '</p>' +
             '<p><strong>Role:</strong> ' + role + '</p>' +
             '<p><strong>Location:</strong> ' + config.brandName + '</p>' +
@@ -297,7 +310,7 @@ function testAllRoutes() {
       source: r.source, role: r.role, timestamp: new Date().toISOString(),
       firstName: 'TEST', lastName: 'ROUTE', phone: '+44 7543 277144', email: '  Test.Route@Example.COM ',
       postcode: 'yo26 6dl', shifts: 'Days', hours: 'Full-time', experience: '3+ years experience',
-      availability: 'Immediately', 'requires-sponsorship': 'No', message: marker,
+      availability: 'Immediately', 'requires-sponsorship': 'No - I can work in the UK without sponsorship', message: marker,
       channel: 'test', campaign: 'testAllRoutes'
     };
     var result = 'FAIL';
