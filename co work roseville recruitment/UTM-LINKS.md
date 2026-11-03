@@ -22,11 +22,14 @@ creatives in the same campaign so results roll up per home.
 
 ## Role in the link
 
-Each form has a "Which job are you applying for?" dropdown. Put the role in the
-link and it is pre-selected for the applicant:
+The care pages (`/melksham`, `/york`, `/limetreehouse`, `/lodge`) are for the
+care assistant and home carer adverts. Every other vacancy uses the home's
+other-roles page (`/melksham-roles`, `/york-roles`, `/limetreehouse-roles`,
+`/lodge-roles`), which has a "Which job are you applying for?" dropdown. Put the
+role in the link and it is pre-selected for the applicant:
 
 ```
-https://rosevillecaregroup.co.uk/melksham?role=Cleaner%20%2F%20Domestic&utm_source=facebook&utm_medium=paid&utm_campaign=cleaner-melksham&utm_content=ad1-rate
+https://rosevillecaregroup.co.uk/melksham-roles?role=Cleaner%20%2F%20Domestic&utm_source=facebook&utm_medium=paid&utm_campaign=cleaner-melksham&utm_content=ad1-rate
 ```
 
 `role=` matches by prefix, case-insensitively, so `role=cook`, `role=nurse`,
@@ -38,7 +41,7 @@ campaign `<role>-<home>` for non-care roles, e.g. `cook-melksham`,
 `cleaner-lodge`, so the tracker's Campaign column shows the vacancy.
 
 Old cook adverts pointing at `/melksham-cook` still work: Netlify redirects them
-to `/melksham?role=Cook` with the UTM tags intact.
+to `/melksham-roles?role=Cook` with the UTM tags intact.
 
 ## Domain
 
