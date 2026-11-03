@@ -95,6 +95,18 @@ is complete and the pages load there. Until then use
 | Gumtree listing | `https://rosevillecaregroup.co.uk/lodge?utm_source=gumtree&utm_medium=organic&utm_campaign=lodge-ca&utm_content=listing` |
 | Google ad | `https://rosevillecaregroup.co.uk/lodge?utm_source=google&utm_medium=paid&utm_campaign=lodge-ca&utm_content=search` |
 
+## Advert wording
+
+Every advert and listing must say that applicants need the right to work in the
+UK and that sponsorship is not available. Suggested line:
+
+> You must already have the right to work in the UK. We are unable to offer visa
+> sponsorship.
+
+The form repeats this and asks a right-to-work question. Nobody is rejected
+automatically on it: anyone who needs sponsorship or is unsure is flagged for the
+manager to check.
+
 ## Checking a link works
 
 Open the tagged link, submit a test application, and confirm the new row on the
