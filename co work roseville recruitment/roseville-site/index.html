@@ -66,6 +66,15 @@
     flex-direction: column;
     gap: 12px;
   }
+  .card-stack > .card:first-child {
+    flex: 1;   /* care cards fill the row so both homes' "Other roles" cards line up */
+  }
+  .card-stack > .card-small {
+    min-height: 92px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
   .card.card-small {
     padding: 14px 24px;
   }
